@@ -67,7 +67,9 @@ export const SiteConfiguration = IDL.Record({
     'linkedin' : IDL.Text,
     'twitter' : IDL.Text,
     'instagram' : IDL.Text,
+    'whatsapp' : IDL.Text,
     'facebook' : IDL.Text,
+    'youtube' : IDL.Text,
   }),
 });
 
@@ -196,7 +198,9 @@ export const idlFactory = ({ IDL }) => {
       'linkedin' : IDL.Text,
       'twitter' : IDL.Text,
       'instagram' : IDL.Text,
+      'whatsapp' : IDL.Text,
       'facebook' : IDL.Text,
+      'youtube' : IDL.Text,
     }),
   });
   

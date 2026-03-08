@@ -70,7 +70,13 @@ const emptyForm: PostFormState = {
   coverImageId: "",
 };
 
-export default function BlogPostsPanel() {
+interface BlogPostsPanelProps {
+  subadminMode?: boolean;
+}
+
+export default function BlogPostsPanel({
+  subadminMode = false,
+}: BlogPostsPanelProps) {
   const { data: posts, isLoading } = useGetAllBlogPostsAdmin();
   const approveMutation = useApproveBlogPost();
   const rejectMutation = useRejectBlogPost();
@@ -491,69 +497,78 @@ export default function BlogPostsPanel() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-1.5 justify-end flex-wrap">
-                      {/* Publish for pending */}
-                      {post.status === "pending" && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleApprove(post.id)}
-                          disabled={approveMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700 text-white gap-1.5 text-xs"
-                          data-ocid={`blog.primary_button.${index + 1}`}
-                        >
-                          {approveMutation.isPending ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Rocket className="h-3.5 w-3.5" />
+                      {!subadminMode && (
+                        <>
+                          {/* Publish for pending */}
+                          {post.status === "pending" && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleApprove(post.id)}
+                              disabled={approveMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700 text-white gap-1.5 text-xs"
+                              data-ocid={`blog.primary_button.${index + 1}`}
+                            >
+                              {approveMutation.isPending ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Rocket className="h-3.5 w-3.5" />
+                              )}
+                              Publish
+                            </Button>
                           )}
-                          Publish
-                        </Button>
+                          {/* Restore for rejected */}
+                          {post.status === "rejected" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleApprove(post.id)}
+                              disabled={approveMutation.isPending}
+                              className="hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/30 gap-1 text-xs"
+                              data-ocid={`blog.secondary_button.${index + 1}`}
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                              Restore
+                            </Button>
+                          )}
+                          {/* Reject */}
+                          {post.status !== "rejected" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleReject(post.id)}
+                              disabled={rejectMutation.isPending}
+                              className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {/* Edit */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEditDialog(post)}
+                            className="hover:bg-chart-1/10 hover:text-chart-1 hover:border-chart-1/30"
+                            data-ocid={`blog.edit_button.${index + 1}`}
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </Button>
+                          {/* Delete */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDeletingPostId(post.id)}
+                            className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                            data-ocid={`blog.delete_button.${index + 1}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
                       )}
-                      {/* Restore for rejected */}
-                      {post.status === "rejected" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleApprove(post.id)}
-                          disabled={approveMutation.isPending}
-                          className="hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/30 gap-1 text-xs"
-                          data-ocid={`blog.secondary_button.${index + 1}`}
-                        >
-                          <Check className="h-3.5 w-3.5" />
-                          Restore
-                        </Button>
+                      {subadminMode && (
+                        <span className="text-xs text-muted-foreground italic">
+                          View only
+                        </span>
                       )}
-                      {/* Reject */}
-                      {post.status !== "rejected" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleReject(post.id)}
-                          disabled={rejectMutation.isPending}
-                          className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                      {/* Edit */}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEditDialog(post)}
-                        className="hover:bg-chart-1/10 hover:text-chart-1 hover:border-chart-1/30"
-                        data-ocid={`blog.edit_button.${index + 1}`}
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </Button>
-                      {/* Delete */}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setDeletingPostId(post.id)}
-                        className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
-                        data-ocid={`blog.delete_button.${index + 1}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

@@ -23,6 +23,8 @@ export default function SiteConfigurationForm() {
       twitter: "",
       instagram: "",
       linkedin: "",
+      youtube: "",
+      whatsapp: "",
     },
   });
 
@@ -53,7 +55,13 @@ export default function SiteConfigurationForm() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Site Configuration</h2>
+      <div>
+        <h2 className="text-2xl font-semibold">Contact &amp; Social Media</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          These details appear on your homepage and footer — visitors will see
+          them.
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4 p-6 rounded-lg border border-border bg-card">
@@ -167,6 +175,42 @@ export default function SiteConfigurationForm() {
                 placeholder="https://linkedin.com/company/byteway"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="youtube">YouTube URL</Label>
+              <Input
+                id="youtube"
+                data-ocid="config.youtube.input"
+                value={formData.socialMedia.youtube}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    socialMedia: {
+                      ...formData.socialMedia,
+                      youtube: e.target.value,
+                    },
+                  })
+                }
+                placeholder="https://youtube.com/@byteway"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="whatsapp">WhatsApp Number / Link</Label>
+              <Input
+                id="whatsapp"
+                data-ocid="config.whatsapp.input"
+                value={formData.socialMedia.whatsapp}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    socialMedia: {
+                      ...formData.socialMedia,
+                      whatsapp: e.target.value,
+                    },
+                  })
+                }
+                placeholder="https://wa.me/1234567890"
+              />
+            </div>
           </div>
         </div>
 
@@ -183,7 +227,7 @@ export default function SiteConfigurationForm() {
           ) : (
             <>
               <Save className="mr-2 h-4 w-4" />
-              Save Configuration
+              Save Changes
             </>
           )}
         </Button>

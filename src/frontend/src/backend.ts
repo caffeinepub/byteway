@@ -129,7 +129,9 @@ export interface SiteConfiguration {
         linkedin: string;
         twitter: string;
         instagram: string;
+        whatsapp: string;
         facebook: string;
+        youtube: string;
     };
 }
 export interface _CaffeineStorageCreateCertificateResult {

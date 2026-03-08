@@ -213,46 +213,33 @@ export function getSecretParameter(paramName: string): string | null {
   return getSecretFromHash(paramName);
 }
 
-const REDIRECT_KEY = "_bw_redirect";
+// ─── Deep-link restoration helpers ───────────────────────────────────────────
+
+const REDIRECT_STORAGE_KEY = "byteway_redirect_path";
 
 /**
- * Retrieves the stored deep-link redirect path (set by 404.html).
- * Returns null if none is stored.
+ * Retrieves the deep-link path stored by the 404.html redirect shim.
+ * The shim stores the original path in sessionStorage so the SPA can
+ * restore it after mounting.
+ *
+ * @returns The stored path if present, null otherwise
  */
 export function getRedirectPath(): string | null {
   try {
-    // Check session storage first
-    const stored = sessionStorage.getItem(REDIRECT_KEY);
-    if (stored) return stored;
-
-    // Also check query param ?redirect=/path
-    const urlParams = new URLSearchParams(window.location.search);
-    const redirectParam = urlParams.get("redirect");
-    if (redirectParam) {
-      sessionStorage.setItem(REDIRECT_KEY, redirectParam);
-      return redirectParam;
-    }
+    return sessionStorage.getItem(REDIRECT_STORAGE_KEY);
   } catch {
-    // sessionStorage may be unavailable
+    return null;
   }
-  return null;
 }
 
 /**
- * Clears the stored redirect path from session storage and URL.
+ * Clears the redirect path from sessionStorage after the SPA has
+ * consumed it so that subsequent navigations are not affected.
  */
 export function clearRedirectParam(): void {
   try {
-    sessionStorage.removeItem(REDIRECT_KEY);
+    sessionStorage.removeItem(REDIRECT_STORAGE_KEY);
   } catch {
     // ignore
-  }
-  // Remove ?redirect from URL without reloading
-  if (window.history.replaceState) {
-    const url = new URL(window.location.href);
-    if (url.searchParams.has("redirect")) {
-      url.searchParams.delete("redirect");
-      window.history.replaceState(null, "", url.toString());
-    }
   }
 }
