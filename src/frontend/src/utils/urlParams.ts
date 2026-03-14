@@ -107,11 +107,6 @@ export function clearSessionParameter(key: string): void {
  * Used to remove sensitive data from the address bar after extracting it
  *
  * @param paramName - The parameter to remove from the hash
- *
- * @example
- * // URL: https://app.com/#/dashboard?caffeineAdminToken=xxx&other=value
- * // After clearParamFromHash('caffeineAdminToken')
- * // URL: https://app.com/#/dashboard?other=value
  */
 function clearParamFromHash(paramName: string): void {
   if (!window.history.replaceState) {
@@ -162,8 +157,6 @@ function clearParamFromHash(paramName: string): void {
  * Hash fragments aren't sent to servers or logged in access logs
  * The hash is immediately cleared from the URL after extraction to prevent history leakage
  *
- * Usage: https://yourapp.com/#secret=xxx
- *
  * @param paramName - The name of the secret parameter
  * @returns The secret value if found (from hash or session), null otherwise
  */
@@ -198,13 +191,6 @@ export function getSecretFromHash(paramName: string): string | null {
 
 /**
  * Gets a secret parameter with fallback chain: hash -> sessionStorage
- * This is the recommended way to handle sensitive parameters like admin tokens
- *
- * Security benefits over regular URL params:
- * - Hash fragments are not sent to the server
- * - Not logged in server access logs
- * - Not sent in HTTP Referer headers
- * - Automatically cleared from URL after extraction
  *
  * @param paramName - The name of the secret parameter
  * @returns The secret value if found, null otherwise
@@ -213,33 +199,28 @@ export function getSecretParameter(paramName: string): string | null {
   return getSecretFromHash(paramName);
 }
 
-// ─── Deep-link restoration helpers ───────────────────────────────────────────
-
-const REDIRECT_STORAGE_KEY = "byteway_redirect_path";
-
 /**
- * Retrieves the deep-link path stored by the 404.html redirect shim.
- * The shim stores the original path in sessionStorage so the SPA can
- * restore it after mounting.
+ * Stores a redirect path in sessionStorage for post-login navigation
  *
- * @returns The stored path if present, null otherwise
+ * @param path - The path to redirect to after login
  */
-export function getRedirectPath(): string | null {
-  try {
-    return sessionStorage.getItem(REDIRECT_STORAGE_KEY);
-  } catch {
-    return null;
-  }
+export function storeRedirectPath(path: string): void {
+  storeSessionParameter("redirectPath", path);
 }
 
 /**
- * Clears the redirect path from sessionStorage after the SPA has
- * consumed it so that subsequent navigations are not affected.
+ * Retrieves the stored redirect path and clears it
+ *
+ * @returns The stored redirect path or null if none
+ */
+export function getRedirectPath(): string | null {
+  const path = getSessionParameter("redirectPath");
+  return path;
+}
+
+/**
+ * Clears the stored redirect path parameter from session storage
  */
 export function clearRedirectParam(): void {
-  try {
-    sessionStorage.removeItem(REDIRECT_STORAGE_KEY);
-  } catch {
-    // ignore
-  }
+  clearSessionParameter("redirectPath");
 }

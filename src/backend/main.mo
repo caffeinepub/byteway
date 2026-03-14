@@ -85,6 +85,37 @@ actor {
     };
   };
 
+  // Video Post Type
+  type VideoPost = {
+    id : Text;
+    title : Text;
+    description : Text;
+    videoUrl : Text;
+    thumbnailUrl : ?Text;
+    uploadedAt : Time.Time;
+  };
+
+  type VideoInput = {
+    title : Text;
+    description : Text;
+    videoUrl : Text;
+    thumbnailUrl : ?Text;
+  };
+
+  let videoPosts = Map.empty<Text, VideoPost>();
+
+  // Video Call Signaling Types
+  type CallRoom = {
+    code : Text;
+    offer : ?Text;
+    answer : ?Text;
+    callerCandidates : [Text];
+    calleeCandidates : [Text];
+    createdAt : Time.Time;
+  };
+
+  let callRooms = Map.empty<Text, CallRoom>();
+
   public type UserProfile = { name : Text };
 
   let userProfiles = Map.empty<Principal, UserProfile>();
@@ -115,7 +146,7 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  // Blog Post Functions - Public queries only return approved posts
+  // Blog Post Functions
   public query func getAllBlogPostMetadata() : async [BlogPostMetadata] {
     blogPosts.values().toArray().filter(func(blogPost) { switch (blogPost.status) { case (#approved) { true }; case (_) { false } } }).map(
       func(blogPost) {
@@ -146,7 +177,6 @@ actor {
     tags : [Text];
   };
 
-  // No authentication required for blogging functions (frontend password gate handles security)
   public shared ({ caller }) func createBlogPost(input : BlogPostInput) : async Text {
     let id = input.title.concat(" ").concat(input.author).concat(Time.now().toText());
     let newPost = {
@@ -159,7 +189,6 @@ actor {
       id;
       status = #pending;
     };
-
     blogPosts.add(id, newPost);
     id;
   };
@@ -176,7 +205,6 @@ actor {
       id;
       status = #approved;
     };
-
     blogPosts.add(id, newPost);
     id;
   };
@@ -195,24 +223,13 @@ actor {
     ).map(func(post) { { title = post.title; author = post.author; publishedAt = post.publishedAt; id = post.id } });
   };
 
-  // No authentication required for admin functionality (frontend password gate handles security)
   public query func getAllBlogPostsAdmin() : async [BlogPost] { blogPosts.values().toArray() };
 
   public shared func approveBlogPost(id : Text) : async () {
     switch (blogPosts.get(id)) {
       case (null) { Runtime.trap("Blog post not found") };
       case (?post) {
-        let updatedPost = {
-          title = post.title;
-          content = post.content;
-          author = post.author;
-          publishedAt = post.publishedAt;
-          coverImageId = post.coverImageId;
-          tags = post.tags;
-          id = post.id;
-          status = #approved;
-        };
-        blogPosts.add(id, updatedPost);
+        blogPosts.add(id, { title = post.title; content = post.content; author = post.author; publishedAt = post.publishedAt; coverImageId = post.coverImageId; tags = post.tags; id = post.id; status = #approved });
       };
     };
   };
@@ -221,22 +238,11 @@ actor {
     switch (blogPosts.get(id)) {
       case (null) { Runtime.trap("Blog post not found") };
       case (?post) {
-        let updatedPost = {
-          title = post.title;
-          content = post.content;
-          author = post.author;
-          publishedAt = post.publishedAt;
-          coverImageId = post.coverImageId;
-          tags = post.tags;
-          id = post.id;
-          status = #rejected;
-        };
-        blogPosts.add(id, updatedPost);
+        blogPosts.add(id, { title = post.title; content = post.content; author = post.author; publishedAt = post.publishedAt; coverImageId = post.coverImageId; tags = post.tags; id = post.id; status = #rejected });
       };
     };
   };
 
-  // Subscription Functions (no auth required)
   public shared func subscribe(email : Text) : async Text {
     let id = email.concat(Time.now().toText());
     let subscription = { email; subscribedAt = Time.now(); id };
@@ -246,27 +252,15 @@ actor {
 
   public query func getAllSubscriptions() : async [Subscription] { subscriptions.values().toArray() };
 
-  // Site Configuration Functions (no auth required)
   public query func getSiteConfiguration() : async SiteConfiguration { siteConfig };
 
   public shared func updateSiteConfiguration(config : SiteConfiguration) : async () { siteConfig := config };
 
-  // BlogPost Management (no auth required)
   public shared func updateBlogPost(id : Text, input : BlogPostInput) : async () {
     switch (blogPosts.get(id)) {
       case (null) { Runtime.trap("Blog post not found") };
       case (?existingPost) {
-        let updatedPost = {
-          title = input.title;
-          content = input.content;
-          author = input.author;
-          publishedAt = existingPost.publishedAt;
-          coverImageId = input.coverImageId;
-          tags = input.tags;
-          id = existingPost.id;
-          status = existingPost.status;
-        };
-        blogPosts.add(id, updatedPost);
+        blogPosts.add(id, { title = input.title; content = input.content; author = input.author; publishedAt = existingPost.publishedAt; coverImageId = input.coverImageId; tags = input.tags; id = existingPost.id; status = existingPost.status });
       };
     };
   };
@@ -279,5 +273,125 @@ actor {
   public shared func deleteSubscription(id : Text) : async () {
     if (not subscriptions.containsKey(id)) { Runtime.trap("Subscription not found") };
     subscriptions.remove(id);
+  };
+
+  public shared func createVideo(input : VideoInput) : async Text {
+    let id = input.title.concat(Time.now().toText());
+    let video = {
+      id;
+      title = input.title;
+      description = input.description;
+      videoUrl = input.videoUrl;
+      thumbnailUrl = input.thumbnailUrl;
+      uploadedAt = Time.now();
+    };
+    videoPosts.add(id, video);
+    id;
+  };
+
+  public query func getAllVideos() : async [VideoPost] {
+    videoPosts.values().toArray();
+  };
+
+  public shared func updateVideo(id : Text, input : VideoInput) : async () {
+    switch (videoPosts.get(id)) {
+      case (null) { Runtime.trap("Video not found") };
+      case (?existing) {
+        videoPosts.add(id, { id = existing.id; title = input.title; description = input.description; videoUrl = input.videoUrl; thumbnailUrl = input.thumbnailUrl; uploadedAt = existing.uploadedAt });
+      };
+    };
+  };
+
+  public shared func deleteVideo(id : Text) : async () {
+    if (not videoPosts.containsKey(id)) { Runtime.trap("Video not found") };
+    videoPosts.remove(id);
+  };
+
+  // ===== VIDEO CALL SIGNALING =====
+
+  public shared func createCallRoom(code : Text) : async () {
+    let room : CallRoom = {
+      code;
+      offer = null;
+      answer = null;
+      callerCandidates = [];
+      calleeCandidates = [];
+      createdAt = Time.now();
+    };
+    callRooms.add(code, room);
+  };
+
+  public query func roomExists(code : Text) : async Bool {
+    callRooms.containsKey(code);
+  };
+
+  public shared func setOffer(code : Text, sdp : Text) : async () {
+    switch (callRooms.get(code)) {
+      case (null) { Runtime.trap("Room not found") };
+      case (?room) {
+        callRooms.add(code, { code = room.code; offer = ?sdp; answer = room.answer; callerCandidates = room.callerCandidates; calleeCandidates = room.calleeCandidates; createdAt = room.createdAt });
+      };
+    };
+  };
+
+  public query func getOffer(code : Text) : async ?Text {
+    switch (callRooms.get(code)) {
+      case (null) { null };
+      case (?room) { room.offer };
+    };
+  };
+
+  public shared func setAnswer(code : Text, sdp : Text) : async () {
+    switch (callRooms.get(code)) {
+      case (null) { Runtime.trap("Room not found") };
+      case (?room) {
+        callRooms.add(code, { code = room.code; offer = room.offer; answer = ?sdp; callerCandidates = room.callerCandidates; calleeCandidates = room.calleeCandidates; createdAt = room.createdAt });
+      };
+    };
+  };
+
+  public query func getAnswer(code : Text) : async ?Text {
+    switch (callRooms.get(code)) {
+      case (null) { null };
+      case (?room) { room.answer };
+    };
+  };
+
+  public shared func addCallerIceCandidate(code : Text, candidate : Text) : async () {
+    switch (callRooms.get(code)) {
+      case (null) { Runtime.trap("Room not found") };
+      case (?room) {
+        let updated = room.callerCandidates.values().concat([candidate].values()).toArray();
+        callRooms.add(code, { code = room.code; offer = room.offer; answer = room.answer; callerCandidates = updated; calleeCandidates = room.calleeCandidates; createdAt = room.createdAt });
+      };
+    };
+  };
+
+  public shared func addCalleeIceCandidate(code : Text, candidate : Text) : async () {
+    switch (callRooms.get(code)) {
+      case (null) { Runtime.trap("Room not found") };
+      case (?room) {
+        let updated = room.calleeCandidates.values().concat([candidate].values()).toArray();
+        callRooms.add(code, { code = room.code; offer = room.offer; answer = room.answer; callerCandidates = room.callerCandidates; calleeCandidates = updated; createdAt = room.createdAt });
+      };
+    };
+  };
+
+  public query func getCallerIceCandidates(code : Text) : async [Text] {
+    switch (callRooms.get(code)) {
+      case (null) { [] };
+      case (?room) { room.callerCandidates };
+    };
+  };
+
+  public query func getCalleeIceCandidates(code : Text) : async [Text] {
+    switch (callRooms.get(code)) {
+      case (null) { [] };
+      case (?room) { room.calleeCandidates };
+    };
+  };
+
+  public shared func deleteCallRoom(code : Text) : async () {
+    callRooms.remove(code);
   };
 };

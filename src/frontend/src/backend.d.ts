@@ -52,6 +52,20 @@ export interface SiteConfiguration {
 export interface UserProfile {
     name: string;
 }
+export interface VideoPost {
+    id: string;
+    title: string;
+    description: string;
+    videoUrl: string;
+    thumbnailUrl?: string;
+    uploadedAt: Time;
+}
+export interface VideoInput {
+    title: string;
+    description: string;
+    videoUrl: string;
+    thumbnailUrl?: string;
+}
 export enum ApprovalStatus {
     pending = "pending",
     approved = "approved",

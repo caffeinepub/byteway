@@ -2,6 +2,12 @@ import type { Principal } from "@dfinity/principal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { BlogPost, Subscription, UserProfile, UserRole } from "../backend";
 import { useActor } from "./useActor";
+import {
+  useCreateVideo,
+  useDeleteVideo,
+  useGetAllVideos,
+  useUpdateVideo,
+} from "./useVideos";
 
 export function useGetAllBlogPostsAdmin() {
   const { actor, isFetching } = useActor();
@@ -239,3 +245,6 @@ export function useDeleteSubscription() {
     },
   });
 }
+
+// Re-export video hooks for admin use
+export { useGetAllVideos, useCreateVideo, useUpdateVideo, useDeleteVideo };

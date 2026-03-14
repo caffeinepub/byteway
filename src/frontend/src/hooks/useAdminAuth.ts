@@ -22,7 +22,7 @@ const SUBADMINS_STORE_KEY = "byteway_subadmins";
 
 const ADMIN_CREDENTIALS = {
   username: "ALOK",
-  password: "134221",
+  password: "Alok123",
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -56,7 +56,21 @@ function clearSession(): void {
 export function readSubadmins(): SubadminAccount[] {
   try {
     const raw = localStorage.getItem(SUBADMINS_STORE_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      // Seed default sub-admin on fresh install
+      const defaultSubadmin: SubadminAccount[] = [
+        {
+          id: "default-subadmin",
+          username: "ALOK",
+          password: "alok1234",
+        },
+      ];
+      localStorage.setItem(
+        SUBADMINS_STORE_KEY,
+        JSON.stringify(defaultSubadmin),
+      );
+      return defaultSubadmin;
+    }
     return JSON.parse(raw) as SubadminAccount[];
   } catch {
     return [];
