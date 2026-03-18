@@ -1,48 +1,38 @@
-# ByteWay Blog App
+# ByteWay / ChatWave
 
 ## Current State
-- Full admin (ALOK / 134221) can log in at /admin and manage blog posts, subscribers, photos, site config, and sub-admins.
-- Sub-admin accounts can be created by the admin from the "Sub-Admins" tab.
-- Sub-admins log in at /admin with their credentials and are routed to `SubadminDashboardPage`.
-- `SubadminDashboardPage` renders `<BlogPostsPanel subadminMode />`.
-- In `subadminMode`, `BlogPostsPanel` shows the full posts table (all posts) with "View only" for every row action — subadmins cannot edit/delete/approve, which is correct.
-- The "Create Post" button is visible to subadmins and opens the create dialog.
-- The create dialog calls `createAndPublishBlogPost` (publish immediately) or `createBlogPost` (draft).
-- Backend blog functions have no auth — they work for any caller including anonymous.
-- `useActor` initialises an anonymous actor when no Internet Identity is present, which is correct.
-
-## Issues Identified
-1. The `BlogPostsPanel` create dialog has a `coverImageId || undefined` field — this is functionally fine but the UX is confusing for subadmins who just want to post.
-2. Sub-admin dashboard UX is poor: the subadmin sees the entire posts table (all admin-created posts too) with "View only" labels and no useful actions. It's confusing and not focused.
-3. After a subadmin posts a blog, the new post appears in the table with "View only" actions — the subadmin has no feedback that it worked beyond a toast.
-4. The `BlogPostsPanel` in subadmin mode doesn't filter to show only the current subadmin's posts.
-5. Missing a dedicated, streamlined blog-post form for subadmins — the current shared panel is designed for full admin use.
-6. There is no "my posts" view for subadmins to track what they've submitted.
+- Full blog/photo/video app with admin + sub-admin system
+- ByteChat page (VideoCallPage.tsx) with P2P video call and text chat
+- Luna AI chatbot with Gemini integration
+- Search bar, footer with live clock
+- Routes: `/`, `/blog`, `/blog/$id`, `/videos`, `/videocall`, `/admin`
+- No general user login system; no ByteChat route; no Messenger-style UI; no E2E encryption
 
 ## Requested Changes (Diff)
 
 ### Add
-- New `SubadminBlogPanel` component: a dedicated, focused blog creation interface for subadmins.
-  - Shows a simple "Write a Blog Post" form inline (not in a dialog) with title, author, content, tags, and cover image URL.
-  - "Publish Now" button that calls `createAndPublishBlogPost` — posts go live immediately.
-  - "Save as Draft" secondary action.
-  - Below the form, shows a "My Posts" section — a list of posts authored by the current subadmin username, fetched from `getAllBlogPostsAdmin` and filtered client-side.
-  - Each row in "My Posts" shows title, status badge, and date — no edit/delete/approve actions (read-only, correct permissions).
-  - Clear success/error toast feedback.
-- Sub-admin dashboard header updated to make the purpose clear: "Post a Blog Article".
+- General user login/registration: name + password, stored in localStorage with SHA-256 hashed passwords
+- `/bytechat` route pointing to updated ByteChat page
+- UserLoginModal component: simple name + password form, toggle between login/register
+- Messenger-style chat UI in ByteChat: left panel = peers/contacts, right panel = conversation with messages bottom-up
+- "Seen" indicators: double checkmarks (gray = delivered, blue = seen)
+- End-to-end encryption: ECDH key exchange + AES-GCM for encrypting messages between two peers
+- Ephemeral chat storage: all chat messages stored in sessionStorage, cleared on logout
+- Login gate on ByteChat page: users must log in before accessing chat/video features
+- UserContext: global React context for current logged-in user state
 
 ### Modify
-- `SubadminDashboardPage`: replace `<BlogPostsPanel subadminMode />` with `<SubadminBlogPanel />`.
-- `SubadminBlogPanel` pre-fills the author field with the current sub-admin's username.
+- App.tsx: add `/bytechat` route, update nav
+- VideoCallPage.tsx (becomes ByteChat): add login gate, Messenger-style layout, seen indicators, E2E encryption, ephemeral storage
+- ByteWayHeader.tsx: show logged-in user name + logout button when user is logged in on ByteChat
+- Footer.tsx: no changes needed
 
 ### Remove
-- Remove `subadminMode` prop usage from `BlogPostsPanel` (the prop can stay for backward compat but is no longer used in SubadminDashboardPage).
+- Nothing removed
 
 ## Implementation Plan
-1. Create `src/frontend/src/components/admin/SubadminBlogPanel.tsx`:
-   - Inline blog post form (title, author pre-filled with username, content textarea, tags, cover image URL).
-   - Submit calls `createAndPublishBlogPost` or `createBlogPost` depending on toggle.
-   - "My Posts" section below: fetch all posts, filter by author === currentUsername, display in a clean card/table.
-2. Update `SubadminDashboardPage` to use `SubadminBlogPanel` instead of `BlogPostsPanel`.
-3. Ensure all form fields have proper data-ocid markers.
-4. Validate (typecheck + lint + build).
+1. Create `src/frontend/src/context/UserContext.tsx` - stores username in sessionStorage, provides login/logout
+2. Create `src/frontend/src/components/UserLoginModal.tsx` - login/register modal with name + SHA-256 password
+3. Update `VideoCallPage.tsx` to: require login, show Messenger-style chat, add seen indicators, use ECDH+AES-GCM E2E encryption, store chats in sessionStorage (cleared on logout)
+4. Update `App.tsx` to add `/bytechat` route and import UserContext provider
+5. Update `ByteWayHeader.tsx` to show user login state

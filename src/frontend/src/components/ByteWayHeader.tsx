@@ -1,18 +1,25 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BookOpen,
+  LogOut,
   Menu,
+  MessageSquare,
   Search,
   Shield,
   UserCheck,
+  UserCircle,
   Video,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearch } from "../context/SearchContext";
+import { useUser } from "../context/UserContext";
 import { useGetAllBlogPostMetadata } from "../hooks/useBlog";
 import { useGetAllVideos } from "../hooks/useVideos";
+import UserLoginModal from "./UserLoginModal";
 
 const ADMIN_VISIBLE_KEY = "byteway_admin_nav_visible";
 
@@ -20,7 +27,9 @@ export default function ByteWayHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [adminLinkVisible, setAdminLinkVisible] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const { searchQuery, setSearchQuery } = useSearch();
+  const { currentUser, logout } = useUser();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -192,201 +201,144 @@ export default function ByteWayHeader() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center gap-4">
-        {/* Logo */}
-        <Link
-          to="/"
-          className="flex items-center gap-2.5 group transition-transform hover:scale-105 duration-300 shrink-0"
-          onClick={handleLogoClick}
-        >
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 via-indigo-500 to-cyan-400 opacity-40 blur-md group-hover:opacity-70 transition-opacity duration-500" />
-            <img
-              src="/assets/generated/byteway-logo.dim_512x512.png"
-              alt="ByteWay Logo"
-              className="relative h-10 w-10 object-contain rounded-full transition-transform group-hover:rotate-12 duration-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.7)]"
-            />
-          </div>
-          <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-500 via-indigo-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-sm">
-            ByteWay
-          </span>
-        </Link>
-
-        {/* Prominent Search Bar - right after logo */}
-        <div
-          className="hidden md:flex relative items-center flex-shrink-0"
-          ref={searchRef}
-        >
-          <div className="absolute left-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-rose-400 animate-search-icon" />
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            onFocus={() => searchQuery.length >= 2 && setDropdownOpen(true)}
-            placeholder="ALOK"
-            data-ocid="nav.search_input"
-            className="pl-10 pr-4 py-2 w-52 rounded-full text-sm bg-gradient-to-r from-rose-500/10 via-pink-500/10 to-indigo-500/10 border border-rose-400/30 text-foreground placeholder:text-rose-300/70 focus:outline-none focus:ring-2 focus:ring-rose-400/50 focus:border-rose-400/60 focus:w-64 transition-all duration-300 shadow-sm shadow-rose-500/10"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-          {showDropdown && <SearchDropdown />}
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 ml-auto">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 relative group"
-              data-ocid={`nav.${item.label.toLowerCase()}.link`}
-            >
-              {item.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-cyan-400 group-hover:w-full transition-all duration-300" />
-            </Link>
-          ))}
-
-          {/* Video Call Link - highlighted */}
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center gap-4">
+          {/* Logo */}
           <Link
-            to="/videocall"
-            className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full transition-all duration-300 relative group"
-            data-ocid="nav.videocall.link"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(6,182,212,0.12), rgba(99,102,241,0.15))",
-              border: "1px solid rgba(6,182,212,0.35)",
-              color: "#06b6d4",
-              boxShadow: "0 0 12px rgba(6,182,212,0.15)",
-            }}
+            to="/"
+            className="flex items-center gap-2.5 group transition-transform hover:scale-105 duration-300 shrink-0"
+            onClick={handleLogoClick}
           >
-            <Video className="h-3.5 w-3.5" />
-            <span>Video Call</span>
-            <span
-              className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(6,182,212,0.25), rgba(99,102,241,0.3))",
-                boxShadow: "0 0 20px rgba(6,182,212,0.4)",
-              }}
-            />
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 via-indigo-500 to-cyan-400 opacity-40 blur-md group-hover:opacity-70 transition-opacity duration-500" />
+              <img
+                src="/assets/generated/byteway-logo.dim_512x512.png"
+                alt="ByteWay Logo"
+                className="relative h-10 w-10 object-contain rounded-full transition-transform group-hover:rotate-12 duration-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.7)]"
+              />
+            </div>
+            <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-500 via-indigo-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-sm">
+              ByteWay
+            </span>
           </Link>
 
-          {adminLinkVisible && (
-            <div className="flex items-center gap-2 ml-2 animate-in fade-in duration-300">
-              <Link
-                to="/admin"
-                className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-200"
-                data-ocid="nav.admin.link"
-              >
-                <Shield className="h-3 w-3" />
-                Admin
-              </Link>
-              <Link
-                to="/admin"
-                className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 hover:bg-cyan-500/20 hover:text-cyan-300 transition-all duration-200"
-                data-ocid="nav.subadmin.link"
-              >
-                <UserCheck className="h-3 w-3" />
-                Sub-Admin
-              </Link>
+          {/* Prominent Search Bar */}
+          <div
+            className="hidden md:flex relative items-center flex-shrink-0"
+            ref={searchRef}
+          >
+            <div className="absolute left-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-rose-400 animate-search-icon" />
             </div>
-          )}
-        </nav>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => searchQuery.length >= 2 && setDropdownOpen(true)}
+              placeholder="ALOK"
+              data-ocid="nav.search_input"
+              className="pl-10 pr-4 py-2 w-52 rounded-full text-sm bg-gradient-to-r from-rose-500/10 via-pink-500/10 to-indigo-500/10 border border-rose-400/30 text-foreground placeholder:text-rose-300/70 focus:outline-none focus:ring-2 focus:ring-rose-400/50 focus:border-rose-400/60 focus:w-64 transition-all duration-300 shadow-sm shadow-rose-500/10"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+            {showDropdown && <SearchDropdown />}
+          </div>
 
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden ml-auto"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          data-ocid="nav.menu.toggle"
-        >
-          {mobileMenuOpen ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
-          )}
-        </Button>
-      </div>
-
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur animate-in slide-in-from-top duration-300">
-          <nav className="container py-4 flex flex-col gap-3">
-            {/* Mobile Search Bar */}
-            <div className="relative flex flex-col" ref={searchRef}>
-              <div className="relative flex items-center">
-                <div className="absolute left-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-rose-400 animate-search-icon" />
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  onFocus={() =>
-                    searchQuery.length >= 2 && setDropdownOpen(true)
-                  }
-                  placeholder="ALOK"
-                  data-ocid="nav.search_input"
-                  className="pl-10 pr-4 py-2 w-full rounded-full text-sm bg-gradient-to-r from-rose-500/10 via-pink-500/10 to-indigo-500/10 border border-rose-400/30 text-foreground placeholder:text-rose-300/70 focus:outline-none focus:ring-2 focus:ring-rose-400/50 focus:border-rose-400/60 transition-all duration-300"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={clearSearch}
-                    className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-              {showDropdown && (
-                <div className="relative mt-1">
-                  <SearchDropdown />
-                </div>
-              )}
-            </div>
-
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6 ml-auto">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 py-2"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 relative group"
                 data-ocid={`nav.${item.label.toLowerCase()}.link`}
               >
                 {item.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-cyan-400 group-hover:w-full transition-all duration-300" />
               </Link>
             ))}
 
-            {/* Mobile Video Call Link */}
+            {/* ByteChat Link */}
             <Link
-              to="/videocall"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 py-2 text-sm font-semibold"
-              data-ocid="nav.videocall.link"
-              style={{ color: "#06b6d4" }}
+              to="/bytechat"
+              className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full transition-all duration-300 relative group"
+              data-ocid="nav.bytechat.link"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(6,182,212,0.12), rgba(99,102,241,0.15))",
+                border: "1px solid rgba(6,182,212,0.35)",
+                color: "#06b6d4",
+                boxShadow: "0 0 12px rgba(6,182,212,0.15)",
+              }}
             >
-              <Video className="h-4 w-4" />
-              Video Call
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span>ByteChat</span>
+              <span
+                className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(6,182,212,0.25), rgba(99,102,241,0.3))",
+                  boxShadow: "0 0 20px rgba(6,182,212,0.4)",
+                }}
+              />
             </Link>
 
+            {/* User status */}
+            {currentUser ? (
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs"
+                  style={{
+                    background: "rgba(6,182,212,0.1)",
+                    border: "1px solid rgba(6,182,212,0.25)",
+                    color: "#06b6d4",
+                  }}
+                >
+                  <UserCircle className="h-3.5 w-3.5" />
+                  <span className="font-medium max-w-[80px] truncate">
+                    {currentUser.username}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="p-1.5 rounded-full text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                  title="Logout from ByteChat"
+                  data-ocid="nav.logout.button"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setLoginModalOpen(true)}
+                className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full transition-all"
+                style={{
+                  background: "rgba(99,102,241,0.1)",
+                  border: "1px solid rgba(99,102,241,0.3)",
+                  color: "#a78bfa",
+                }}
+                data-ocid="nav.login.button"
+              >
+                <UserCircle className="h-3.5 w-3.5" />
+                Login
+              </button>
+            )}
+
             {adminLinkVisible && (
-              <div className="flex flex-col gap-2 pt-1 border-t border-border/30">
+              <div className="flex items-center gap-2 ml-2 animate-in fade-in duration-300">
                 <Link
                   to="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 hover:bg-indigo-500/20 w-fit"
+                  className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 hover:bg-indigo-500/20 hover:text-indigo-300 transition-all duration-200"
                   data-ocid="nav.admin.link"
                 >
                   <Shield className="h-3 w-3" />
@@ -394,8 +346,7 @@ export default function ByteWayHeader() {
                 </Link>
                 <Link
                   to="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 hover:bg-cyan-500/20 w-fit"
+                  className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 hover:bg-cyan-500/20 hover:text-cyan-300 transition-all duration-200"
                   data-ocid="nav.subadmin.link"
                 >
                   <UserCheck className="h-3 w-3" />
@@ -404,8 +355,157 @@ export default function ByteWayHeader() {
               </div>
             )}
           </nav>
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden ml-auto"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            data-ocid="nav.menu.toggle"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
         </div>
-      )}
-    </header>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur animate-in slide-in-from-top duration-300">
+            <nav className="container py-4 flex flex-col gap-3">
+              {/* Mobile Search Bar */}
+              <div className="relative flex flex-col" ref={searchRef}>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-rose-400 animate-search-icon" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onFocus={() =>
+                      searchQuery.length >= 2 && setDropdownOpen(true)
+                    }
+                    placeholder="ALOK"
+                    data-ocid="nav.search_input"
+                    className="pl-10 pr-4 py-2 w-full rounded-full text-sm bg-gradient-to-r from-rose-500/10 via-pink-500/10 to-indigo-500/10 border border-rose-400/30 text-foreground placeholder:text-rose-300/70 focus:outline-none focus:ring-2 focus:ring-rose-400/50 focus:border-rose-400/60 transition-all duration-300"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={clearSearch}
+                      className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+                {showDropdown && (
+                  <div className="relative mt-1">
+                    <SearchDropdown />
+                  </div>
+                )}
+              </div>
+
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 py-2"
+                  data-ocid={`nav.${item.label.toLowerCase()}.link`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              {/* Mobile ByteChat Link */}
+              <Link
+                to="/bytechat"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 py-2 text-sm font-semibold"
+                data-ocid="nav.bytechat.link"
+                style={{ color: "#06b6d4" }}
+              >
+                <MessageSquare className="h-4 w-4" />
+                ByteChat
+              </Link>
+
+              {/* Mobile user status */}
+              {currentUser ? (
+                <div className="flex items-center justify-between py-2 border-t border-border/30">
+                  <div
+                    className="flex items-center gap-2"
+                    style={{ color: "#06b6d4" }}
+                  >
+                    <UserCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      {currentUser.username}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300"
+                    data-ocid="nav.logout.button"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginModalOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 py-2 text-sm"
+                  style={{ color: "#a78bfa" }}
+                  data-ocid="nav.login.button"
+                >
+                  <UserCircle className="h-4 w-4" />
+                  Login to ByteChat
+                </button>
+              )}
+
+              {adminLinkVisible && (
+                <div className="flex flex-col gap-2 pt-1 border-t border-border/30">
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 hover:bg-indigo-500/20 w-fit"
+                    data-ocid="nav.admin.link"
+                  >
+                    <Shield className="h-3 w-3" />
+                    Admin
+                  </Link>
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 hover:bg-cyan-500/20 w-fit"
+                    data-ocid="nav.subadmin.link"
+                  >
+                    <UserCheck className="h-3 w-3" />
+                    Sub-Admin
+                  </Link>
+                </div>
+              )}
+            </nav>
+          </div>
+        )}
+      </header>
+
+      <UserLoginModal
+        open={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+      />
+    </>
   );
 }

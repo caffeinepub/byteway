@@ -107,6 +107,11 @@ export function clearSessionParameter(key: string): void {
  * Used to remove sensitive data from the address bar after extracting it
  *
  * @param paramName - The parameter to remove from the hash
+ *
+ * @example
+ * // URL: https://app.com/#/dashboard?caffeineAdminToken=xxx&other=value
+ * // After clearParamFromHash('caffeineAdminToken')
+ * // URL: https://app.com/#/dashboard?other=value
  */
 function clearParamFromHash(paramName: string): void {
   if (!window.history.replaceState) {
@@ -157,6 +162,8 @@ function clearParamFromHash(paramName: string): void {
  * Hash fragments aren't sent to servers or logged in access logs
  * The hash is immediately cleared from the URL after extraction to prevent history leakage
  *
+ * Usage: https://yourapp.com/#secret=xxx
+ *
  * @param paramName - The name of the secret parameter
  * @returns The secret value if found (from hash or session), null otherwise
  */
@@ -191,6 +198,13 @@ export function getSecretFromHash(paramName: string): string | null {
 
 /**
  * Gets a secret parameter with fallback chain: hash -> sessionStorage
+ * This is the recommended way to handle sensitive parameters like admin tokens
+ *
+ * Security benefits over regular URL params:
+ * - Hash fragments are not sent to the server
+ * - Not logged in server access logs
+ * - Not sent in HTTP Referer headers
+ * - Automatically cleared from URL after extraction
  *
  * @param paramName - The name of the secret parameter
  * @returns The secret value if found, null otherwise
@@ -199,28 +213,10 @@ export function getSecretParameter(paramName: string): string | null {
   return getSecretFromHash(paramName);
 }
 
-/**
- * Stores a redirect path in sessionStorage for post-login navigation
- *
- * @param path - The path to redirect to after login
- */
-export function storeRedirectPath(path: string): void {
-  storeSessionParameter("redirectPath", path);
-}
-
-/**
- * Retrieves the stored redirect path and clears it
- *
- * @returns The stored redirect path or null if none
- */
 export function getRedirectPath(): string | null {
-  const path = getSessionParameter("redirectPath");
-  return path;
+  return sessionStorage.getItem("byteway_redirect_path");
 }
 
-/**
- * Clears the stored redirect path parameter from session storage
- */
 export function clearRedirectParam(): void {
-  clearSessionParameter("redirectPath");
+  sessionStorage.removeItem("byteway_redirect_path");
 }

@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import Layout from "./components/Layout";
 import AdminGuard from "./components/admin/AdminGuard";
 import { SearchProvider } from "./context/SearchContext";
+import { UserProvider } from "./context/UserContext";
 import BlogListPage from "./pages/BlogListPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import HomePage from "./pages/HomePage";
@@ -72,6 +73,12 @@ const videoCallRoute = createRoute({
   component: VideoCallPage,
 });
 
+const byteChatRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/bytechat",
+  component: VideoCallPage,
+});
+
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin",
@@ -88,6 +95,7 @@ const routeTree = rootRoute.addChildren([
   blogPostRoute,
   videosRoute,
   videoCallRoute,
+  byteChatRoute,
   adminRoute,
 ]);
 
@@ -102,10 +110,12 @@ declare module "@tanstack/react-router" {
 export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <SearchProvider>
-        <RouterProvider router={router} />
-        <Toaster />
-      </SearchProvider>
+      <UserProvider>
+        <SearchProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </SearchProvider>
+      </UserProvider>
     </ThemeProvider>
   );
 }
