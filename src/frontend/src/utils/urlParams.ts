@@ -213,10 +213,17 @@ export function getSecretParameter(paramName: string): string | null {
   return getSecretFromHash(paramName);
 }
 
+/**
+ * Gets the redirect path from URL parameters or session storage
+ */
 export function getRedirectPath(): string | null {
-  return sessionStorage.getItem("byteway_redirect_path");
+  return getUrlParameter("redirect") ?? getSessionParameter("redirect");
 }
 
+/**
+ * Clears the redirect parameter from session storage
+ */
 export function clearRedirectParam(): void {
-  sessionStorage.removeItem("byteway_redirect_path");
+  clearSessionParameter("redirect");
+  clearParamFromHash("redirect");
 }

@@ -16,6 +16,7 @@ import { UserProvider } from "./context/UserContext";
 import BlogListPage from "./pages/BlogListPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import HomePage from "./pages/HomePage";
+import MessengerPage from "./pages/MessengerPage";
 import VideoCallPage from "./pages/VideoCallPage";
 import VideosPage from "./pages/VideosPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
@@ -76,7 +77,7 @@ const videoCallRoute = createRoute({
 const byteChatRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/bytechat",
-  component: VideoCallPage,
+  component: MessengerPage,
 });
 
 const adminRoute = createRoute({

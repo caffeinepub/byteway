@@ -15,6 +15,7 @@ export default function UserLoginModal({ open, onClose }: UserLoginModalProps) {
   const { login, register } = useUser();
   const [tab, setTab] = useState<"login" | "register">("login");
   const [username, setUsername] = useState("");
+  const [uniqueId, setUniqueId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,7 @@ export default function UserLoginModal({ open, onClose }: UserLoginModalProps) {
       if (tab === "login") {
         await login(username, password);
       } else {
-        await register(username, password);
+        await register(username, password, uniqueId);
       }
       onClose();
     } catch (err: any) {
@@ -180,9 +181,7 @@ export default function UserLoginModal({ open, onClose }: UserLoginModalProps) {
             <TabsContent value="register">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="text-slate-300 text-sm">
-                    Choose a Username
-                  </Label>
+                  <Label className="text-slate-300 text-sm">Username</Label>
                   <Input
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
@@ -194,9 +193,24 @@ export default function UserLoginModal({ open, onClose }: UserLoginModalProps) {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-slate-300 text-sm">
-                    Create Password
-                  </Label>
+                  <Label className="text-slate-300 text-sm">Unique ID</Label>
+                  <Input
+                    value={uniqueId}
+                    onChange={(e) => setUniqueId(e.target.value)}
+                    placeholder="e.g. alok123"
+                    autoComplete="off"
+                    required
+                    maxLength={20}
+                    className="bg-slate-900/60 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500"
+                    data-ocid="user_login.input"
+                  />
+                  <p className="text-xs text-slate-500">
+                    Others will use this to find and connect with you (e.g.
+                    alok123). Only letters, numbers, underscores. 3–20 chars.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-slate-300 text-sm">Password</Label>
                   <Input
                     type="password"
                     value={password}
