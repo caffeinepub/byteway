@@ -214,16 +214,24 @@ export function getSecretParameter(paramName: string): string | null {
 }
 
 /**
- * Gets the redirect path from URL parameters or session storage
+ * Stores a redirect path in sessionStorage
+ * @param path - The path to redirect to after login
  */
-export function getRedirectPath(): string | null {
-  return getUrlParameter("redirect") ?? getSessionParameter("redirect");
+export function setRedirectPath(path: string): void {
+  storeSessionParameter("redirectPath", path);
 }
 
 /**
- * Clears the redirect parameter from session storage
+ * Gets and returns the stored redirect path (does not clear it)
+ * @returns The redirect path if set, null otherwise
+ */
+export function getRedirectPath(): string | null {
+  return getSessionParameter("redirectPath");
+}
+
+/**
+ * Clears the stored redirect path from sessionStorage
  */
 export function clearRedirectParam(): void {
-  clearSessionParameter("redirect");
-  clearParamFromHash("redirect");
+  clearSessionParameter("redirectPath");
 }
