@@ -15,8 +15,6 @@ import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-
-
 actor {
   type ApprovalStatus = { #pending; #approved; #rejected };
 
@@ -56,6 +54,38 @@ actor {
   };
 
   let subscriptions = Map.empty<Text, Subscription>();
+
+  // New FilePost type
+  type FileType = {
+    #APK;
+    #PDF;
+    #DOC;
+    #TXT;
+    #EXE;
+    #OTHER;
+  };
+  type FilePost = {
+    id : Text;
+    title : Text;
+    description : Text;
+    fileUrl : Text;
+    fileSize : Text;
+    fileType : FileType;
+    category : Text;
+    version : ?Text;
+    uploadedAt : Time.Time;
+  };
+  let filePosts = Map.empty<Text, FilePost>();
+
+  type FileInput = {
+    title : Text;
+    description : Text;
+    fileUrl : Text;
+    fileSize : Text;
+    fileType : FileType;
+    category : Text;
+    version : ?Text;
+  };
 
   type SiteConfiguration = {
     address : Text;
@@ -178,6 +208,9 @@ actor {
   };
 
   public shared ({ caller }) func createBlogPost(input : BlogPostInput) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create blog posts");
+    };
     let id = input.title.concat(" ").concat(input.author).concat(Time.now().toText());
     let newPost = {
       title = input.title;
@@ -194,6 +227,9 @@ actor {
   };
 
   public shared ({ caller }) func createAndPublishBlogPost(input : BlogPostInput) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can create and publish blog posts");
+    };
     let id = input.title.concat(" ").concat(input.author).concat(Time.now().toText());
     let newPost = {
       title = input.title;
@@ -223,9 +259,17 @@ actor {
     ).map(func(post) { { title = post.title; author = post.author; publishedAt = post.publishedAt; id = post.id } });
   };
 
-  public query func getAllBlogPostsAdmin() : async [BlogPost] { blogPosts.values().toArray() };
+  public query ({ caller }) func getAllBlogPostsAdmin() : async [BlogPost] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view all blog posts");
+    };
+    blogPosts.values().toArray();
+  };
 
-  public shared func approveBlogPost(id : Text) : async () {
+  public shared ({ caller }) func approveBlogPost(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can approve blog posts");
+    };
     switch (blogPosts.get(id)) {
       case (null) { Runtime.trap("Blog post not found") };
       case (?post) {
@@ -234,7 +278,10 @@ actor {
     };
   };
 
-  public shared func rejectBlogPost(id : Text) : async () {
+  public shared ({ caller }) func rejectBlogPost(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can reject blog posts");
+    };
     switch (blogPosts.get(id)) {
       case (null) { Runtime.trap("Blog post not found") };
       case (?post) {
@@ -250,13 +297,26 @@ actor {
     id;
   };
 
-  public query func getAllSubscriptions() : async [Subscription] { subscriptions.values().toArray() };
+  public query ({ caller }) func getAllSubscriptions() : async [Subscription] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view all subscriptions");
+    };
+    subscriptions.values().toArray();
+  };
 
   public query func getSiteConfiguration() : async SiteConfiguration { siteConfig };
 
-  public shared func updateSiteConfiguration(config : SiteConfiguration) : async () { siteConfig := config };
+  public shared ({ caller }) func updateSiteConfiguration(config : SiteConfiguration) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update site configuration");
+    };
+    siteConfig := config;
+  };
 
-  public shared func updateBlogPost(id : Text, input : BlogPostInput) : async () {
+  public shared ({ caller }) func updateBlogPost(id : Text, input : BlogPostInput) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update blog posts");
+    };
     switch (blogPosts.get(id)) {
       case (null) { Runtime.trap("Blog post not found") };
       case (?existingPost) {
@@ -265,17 +325,26 @@ actor {
     };
   };
 
-  public shared func deleteBlogPost(id : Text) : async () {
+  public shared ({ caller }) func deleteBlogPost(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete blog posts");
+    };
     if (not blogPosts.containsKey(id)) { Runtime.trap("Blog post not found") };
     blogPosts.remove(id);
   };
 
-  public shared func deleteSubscription(id : Text) : async () {
+  public shared ({ caller }) func deleteSubscription(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete subscriptions");
+    };
     if (not subscriptions.containsKey(id)) { Runtime.trap("Subscription not found") };
     subscriptions.remove(id);
   };
 
-  public shared func createVideo(input : VideoInput) : async Text {
+  public shared ({ caller }) func createVideo(input : VideoInput) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can create videos");
+    };
     let id = input.title.concat(Time.now().toText());
     let video = {
       id;
@@ -293,7 +362,10 @@ actor {
     videoPosts.values().toArray();
   };
 
-  public shared func updateVideo(id : Text, input : VideoInput) : async () {
+  public shared ({ caller }) func updateVideo(id : Text, input : VideoInput) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update videos");
+    };
     switch (videoPosts.get(id)) {
       case (null) { Runtime.trap("Video not found") };
       case (?existing) {
@@ -302,9 +374,74 @@ actor {
     };
   };
 
-  public shared func deleteVideo(id : Text) : async () {
+  public shared ({ caller }) func deleteVideo(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete videos");
+    };
     if (not videoPosts.containsKey(id)) { Runtime.trap("Video not found") };
     videoPosts.remove(id);
+  };
+
+  // ===== FILES MANAGEMENT =====
+
+  public shared ({ caller }) func createFile(input : FileInput) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can create files");
+    };
+    // Validate required fields
+    if (input.title == "" or input.fileUrl == "" or input.fileSize == "") {
+      Runtime.trap("Missing required field for file");
+    };
+
+    let id = input.title.concat(Time.now().toText());
+    let file : FilePost = {
+      id;
+      title = input.title;
+      description = input.description;
+      fileUrl = input.fileUrl;
+      fileSize = input.fileSize;
+      fileType = input.fileType;
+      category = input.category;
+      version = input.version;
+      uploadedAt = Time.now();
+    };
+    filePosts.add(id, file);
+    id;
+  };
+
+  public query func getAllFiles() : async [FilePost] {
+    filePosts.values().toArray();
+  };
+
+  public shared ({ caller }) func updateFile(id : Text, input : FileInput) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update files");
+    };
+    switch (filePosts.get(id)) {
+      case (null) { Runtime.trap("File not found") };
+      case (?existing) {
+        let file : FilePost = {
+          id = existing.id;
+          title = input.title;
+          description = input.description;
+          fileUrl = input.fileUrl;
+          fileSize = input.fileSize;
+          fileType = input.fileType;
+          category = input.category;
+          version = input.version;
+          uploadedAt = existing.uploadedAt;
+        };
+        filePosts.add(id, file);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteFile(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete files");
+    };
+    if (not filePosts.containsKey(id)) { Runtime.trap("File not found") };
+    filePosts.remove(id);
   };
 
   // ===== VIDEO CALL SIGNALING =====

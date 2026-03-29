@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "@tanstack/react-router";
 import {
   FileText,
+  FolderDown,
   Image,
   LogOut,
   Settings,
@@ -17,6 +18,7 @@ import { toast } from "sonner";
 import SEO from "../../components/SEO";
 import AdminAuthPanel from "../../components/admin/AdminAuthPanel";
 import BlogPostsPanel from "../../components/admin/BlogPostsPanel";
+import FilesPanel from "../../components/admin/FilesPanel";
 import PhotosPanel from "../../components/admin/PhotosPanel";
 import SiteConfigurationForm from "../../components/admin/SiteConfigurationForm";
 import SubadminManagementPanel from "../../components/admin/SubadminManagementPanel";
@@ -45,7 +47,7 @@ export default function AdminDashboardPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-in fade-in slide-in-from-top duration-700">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-3">
-                <Shield className="h-8 w-8 text-chart-1" />
+                <Shield className="h-8 w-8 text-primary" />
                 Admin Dashboard
               </h1>
               <p className="text-sm text-muted-foreground mt-2">
@@ -72,7 +74,7 @@ export default function AdminDashboardPage() {
             onValueChange={setActiveTab}
             className="animate-in fade-in duration-700 delay-200"
           >
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 h-auto gap-1 p-1">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 h-auto gap-1 p-1">
               <TabsTrigger
                 value="posts"
                 className="flex items-center gap-2 py-2.5"
@@ -96,6 +98,14 @@ export default function AdminDashboardPage() {
               >
                 <Image className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Photos</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="files"
+                className="flex items-center gap-2 py-2.5"
+                data-ocid="admin.files.tab"
+              >
+                <FolderDown className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Files</span>
               </TabsTrigger>
               <TabsTrigger
                 value="subscribers"
@@ -141,6 +151,10 @@ export default function AdminDashboardPage() {
 
             <TabsContent value="photos" className="mt-6">
               <PhotosPanel />
+            </TabsContent>
+
+            <TabsContent value="files" className="mt-6">
+              <FilesPanel />
             </TabsContent>
 
             <TabsContent value="subscribers" className="mt-6">

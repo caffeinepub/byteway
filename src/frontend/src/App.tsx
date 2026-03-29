@@ -15,9 +15,9 @@ import { SearchProvider } from "./context/SearchContext";
 import { UserProvider } from "./context/UserContext";
 import BlogListPage from "./pages/BlogListPage";
 import BlogPostPage from "./pages/BlogPostPage";
+import DownloadsPage from "./pages/DownloadsPage";
 import HomePage from "./pages/HomePage";
 import MessengerPage from "./pages/MessengerPage";
-import VideoCallPage from "./pages/VideoCallPage";
 import VideosPage from "./pages/VideosPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import { clearRedirectParam, getRedirectPath } from "./utils/urlParams";
@@ -68,16 +68,16 @@ const videosRoute = createRoute({
   component: VideosPage,
 });
 
-const videoCallRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/videocall",
-  component: VideoCallPage,
-});
-
 const byteChatRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/bytechat",
   component: MessengerPage,
+});
+
+const downloadsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/downloads",
+  component: DownloadsPage,
 });
 
 const adminRoute = createRoute({
@@ -95,8 +95,8 @@ const routeTree = rootRoute.addChildren([
   blogRoute,
   blogPostRoute,
   videosRoute,
-  videoCallRoute,
   byteChatRoute,
+  downloadsRoute,
   adminRoute,
 ]);
 
@@ -110,7 +110,7 @@ declare module "@tanstack/react-router" {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <UserProvider>
         <SearchProvider>
           <RouterProvider router={router} />

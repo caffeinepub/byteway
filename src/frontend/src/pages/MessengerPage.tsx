@@ -9,26 +9,25 @@ import {
   Lock,
   LogOut,
   MessageCircle,
-  Mic,
-  MicOff,
   MoreVertical,
   Palette,
-  Phone,
-  PhoneOff,
   Plus,
   Search,
   Send,
   Settings,
   Shield,
   User,
-  Video,
-  VideoOff,
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useUser } from "../context/UserContext";
+declare global {
+  interface Window {
+    Peer: any;
+  }
+}
 
 // ─────────────────────────── TYPES ──────────────────────────────
 
@@ -48,21 +47,6 @@ interface Conversation {
   isTyping: boolean;
   lastSeen?: string;
   unreadCount?: number;
-}
-
-type CallState = "idle" | "outgoing" | "incoming" | "in-call";
-type CallType = "video" | "audio";
-
-interface IncomingInfo {
-  fromId: string;
-  callType: CallType;
-  call?: any;
-}
-
-declare global {
-  interface Window {
-    Peer: any;
-  }
 }
 
 // ──────────────────── THEMES ─────────────────────────────────────
@@ -204,6 +188,21 @@ const THEMES: ChatTheme[] = [
     borderColor: "#e0e2f0",
     accent: "#4f46e5",
   },
+  {
+    id: "spiderman",
+    name: "Spider-Man",
+    label: "🕷️",
+    bg: "#0a0005",
+    sidebarBg: "#110008",
+    headerBg: "rgba(12,0,8,0.97)",
+    sentBubble: "linear-gradient(135deg,#cc0000,#991b1b)",
+    receivedBubble: "#1a0a0e",
+    sentText: "#fff",
+    receivedText: "#fca5a5",
+    inputBg: "#160008",
+    borderColor: "#3a0010",
+    accent: "#cc0000",
+  },
 ];
 
 const THEME_KEY = "bytechat_theme";
@@ -239,12 +238,6 @@ function getTime(): string {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function formatCallDuration(s: number): string {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
 // ──────────────────── CRYPTO HELPERS ────────────────────────────
@@ -312,48 +305,6 @@ async function decryptMessage(
 }
 
 // ────────────────── PEERJS LOADER ───────────────────────────────
-
-function loadPeerJS(): Promise<void> {
-  return new Promise((resolve) => {
-    if (window.Peer) {
-      resolve();
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js";
-    script.onload = () => resolve();
-    document.head.appendChild(script);
-  });
-}
-
-function createPeer(id?: string): any {
-  const config = {
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" },
-      { urls: "stun:stun2.l.google.com:19302" },
-      { urls: "stun:stun3.l.google.com:19302" },
-      {
-        urls: "turn:openrelay.metered.ca:80",
-        username: "openrelayproject",
-        credential: "openrelayproject",
-      },
-      {
-        urls: "turn:openrelay.metered.ca:443",
-        username: "openrelayproject",
-        credential: "openrelayproject",
-      },
-      {
-        urls: "turn:openrelay.metered.ca:443?transport=tcp",
-        username: "openrelayproject",
-        credential: "openrelayproject",
-      },
-    ],
-  };
-  if (id) return new window.Peer(id, { config });
-  return new window.Peer({ config });
-}
-
 // ────────────────── STORAGE HELPERS ─────────────────────────────
 
 function loadConversations(username: string): Conversation[] {
@@ -375,39 +326,6 @@ function saveConversations(username: string, convs: Conversation[]) {
 
 function clearSessionData(username: string) {
   sessionStorage.removeItem(`${CONVS_KEY}_${username}`);
-}
-
-// ──────────────────── AUDIO WAVE ANIMATION ───────────────────────
-
-function AudioWave({ color = "#6366f1" }: { color?: string }) {
-  return (
-    <div className="flex items-end gap-1 h-12">
-      {[
-        { id: "a0", h: 1 },
-        { id: "a1", h: 3 },
-        { id: "a2", h: 2 },
-        { id: "a3", h: 4 },
-        { id: "a4", h: 2 },
-        { id: "a5", h: 3 },
-        { id: "a6", h: 1 },
-        { id: "a7", h: 4 },
-        { id: "a8", h: 3 },
-        { id: "a9", h: 2 },
-      ].map(({ id, h }, i) => (
-        <div
-          key={id}
-          className="w-1.5 rounded-full flex-shrink-0"
-          style={{
-            background: color,
-            height: `${h * 10}px`,
-            animation: "audioWave 1.2s ease-in-out infinite",
-            animationDelay: `${i * 0.12}s`,
-            opacity: 0.85,
-          }}
-        />
-      ))}
-    </div>
-  );
 }
 
 // ─────────────────────── AUTH SCREEN ────────────────────────────
@@ -802,7 +720,7 @@ export default function MessengerPage() {
   // ── Theme ──
   const [themeId, setThemeId] = useState<string>(() => {
     try {
-      return localStorage.getItem(THEME_KEY) ?? "dark";
+      return localStorage.getItem(THEME_KEY) ?? "spiderman";
     } catch {
       return "dark";
     }
@@ -831,24 +749,14 @@ export default function MessengerPage() {
   const [newChatError, setNewChatError] = useState("");
 
   // ── Call state ──
-  const [callState, setCallState] = useState<CallState>("idle");
-  const [callType, setCallType] = useState<CallType>("video");
-  const [incomingInfo, setIncomingInfo] = useState<IncomingInfo | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isCamOff, setIsCamOff] = useState(false);
-  const [callDuration, setCallDuration] = useState(0);
 
   // ── Refs ──
   const peerRef = useRef<any>(null);
-  const localStreamRef = useRef<MediaStream | null>(null);
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const dataConnsRef = useRef<Record<string, any>>({});
   const sharedKeysRef = useRef<Record<string, CryptoKey>>({});
   const myKeyPairRef = useRef<CryptoKeyPair | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const user = currentUser;
@@ -894,10 +802,26 @@ export default function MessengerPage() {
     let mounted = true;
 
     (async () => {
-      await loadPeerJS();
       if (!mounted) return;
+      // Load PeerJS
+      if (!window.Peer) {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = "https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js";
+          s.onload = () => resolve();
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
       myKeyPairRef.current = await generateECDHKeyPair();
-      const peer = createPeer(`bytechat_${user.uniqueId}`);
+      const peer = new window.Peer(`bytechat_${user.uniqueId}`, {
+        config: {
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+          ],
+        },
+      });
       peerRef.current = peer;
 
       peer.on("error", () => {
@@ -908,47 +832,15 @@ export default function MessengerPage() {
         if (!mounted) return;
         setupDataConn(conn);
       });
-
-      peer.on("call", (call: any) => {
-        if (!mounted) return;
-        const fromId = call.peer.replace("bytechat_", "");
-        // Detect audio-only by checking if video tracks would be missing
-        const isAudio = call.metadata?.callType === "audio";
-        setIncomingInfo({
-          fromId,
-          callType: isAudio ? "audio" : "video",
-          call,
-        });
-        setCallState("incoming");
-      });
     })();
 
     return () => {
       mounted = false;
       peerRef.current?.destroy();
       peerRef.current = null;
-      if (localStreamRef.current) {
-        for (const t of localStreamRef.current.getTracks()) t.stop();
-      }
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
     };
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Call timer ──
-  useEffect(() => {
-    if (callState === "in-call") {
-      setCallDuration(0);
-      callTimerRef.current = setInterval(
-        () => setCallDuration((d) => d + 1),
-        1000,
-      );
-    } else {
-      if (callTimerRef.current) clearInterval(callTimerRef.current);
-    }
-    return () => {
-      if (callTimerRef.current) clearInterval(callTimerRef.current);
-    };
-  }, [callState]);
 
   // ── Setup data connection ──
   const setupDataConn = useCallback(
@@ -1069,7 +961,6 @@ export default function MessengerPage() {
   // ── Connect to peer ──
   const connectToPeer = useCallback(
     async (targetId: string, targetName?: string) => {
-      if (!peerRef.current) await loadPeerJS();
       const conn = peerRef.current.connect(`bytechat_${targetId}`);
       dataConnsRef.current[targetId] = conn;
 
@@ -1241,131 +1132,12 @@ export default function MessengerPage() {
     [activeConvId],
   );
 
-  // ── Start call (video or audio) ──
-  const startCall = useCallback(
-    async (type: CallType) => {
-      if (!activeConvId || !peerRef.current || !user) return;
-      setCallType(type);
-      try {
-        const constraints =
-          type === "audio"
-            ? {
-                audio: { echoCancellation: true, noiseSuppression: true },
-                video: false,
-              }
-            : {
-                video: {
-                  width: { ideal: 1280 },
-                  height: { ideal: 720 },
-                  frameRate: { max: 24 },
-                },
-                audio: { echoCancellation: true, noiseSuppression: true },
-              };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        localStreamRef.current = stream;
-        if (type === "video" && localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-          localVideoRef.current.play().catch(() => {});
-        }
-        setCallState("outgoing");
-        const call = peerRef.current.call(`bytechat_${activeConvId}`, stream, {
-          metadata: { callType: type },
-        });
-        call.on("stream", (remoteStream: MediaStream) => {
-          if (type === "video" && remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = remoteStream;
-            remoteVideoRef.current.play().catch(() => {});
-          }
-          setCallState("in-call");
-        });
-        call.on("close", () => endCall());
-        call.on("error", () => endCall());
-      } catch {
-        toast.error(`${type === "audio" ? "Mic" : "Camera/mic"} access denied`);
-      }
-    },
-    [activeConvId, user], // eslint-disable-line react-hooks/exhaustive-deps
-  );
-
-  // ── Accept call ──
-  const acceptCall = useCallback(async () => {
-    if (!incomingInfo?.call) return;
-    const type = incomingInfo.callType;
-    setCallType(type);
-    try {
-      const constraints =
-        type === "audio"
-          ? {
-              audio: { echoCancellation: true, noiseSuppression: true },
-              video: false,
-            }
-          : {
-              video: {
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-                frameRate: { max: 24 },
-              },
-              audio: { echoCancellation: true, noiseSuppression: true },
-            };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      localStreamRef.current = stream;
-      if (type === "video" && localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-        localVideoRef.current.play().catch(() => {});
-      }
-      incomingInfo.call.answer(stream);
-      incomingInfo.call.on("stream", (remoteStream: MediaStream) => {
-        if (type === "video" && remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = remoteStream;
-          remoteVideoRef.current.play().catch(() => {});
-        }
-        setCallState("in-call");
-      });
-      incomingInfo.call.on("close", () => endCall());
-      setCallState("in-call");
-    } catch {
-      toast.error("Mic/camera access denied");
-    }
-  }, [incomingInfo]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── End call ──
-  const endCall = useCallback(() => {
-    if (localStreamRef.current) {
-      for (const t of localStreamRef.current.getTracks()) t.stop();
-    }
-    localStreamRef.current = null;
-    if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
-    if (callTimerRef.current) clearInterval(callTimerRef.current);
-    setCallState("idle");
-    setIncomingInfo(null);
-  }, []);
-
-  // ── Toggle mute ──
-  const toggleMute = useCallback(() => {
-    const stream = localStreamRef.current;
-    if (!stream) return;
-    const newMuted = !isMuted;
-    for (const t of stream.getAudioTracks()) t.enabled = !newMuted;
-    setIsMuted(newMuted);
-  }, [isMuted]);
-
-  // ── Toggle cam ──
-  const toggleCam = useCallback(() => {
-    const stream = localStreamRef.current;
-    if (!stream) return;
-    const newOff = !isCamOff;
-    for (const t of stream.getVideoTracks()) t.enabled = !newOff;
-    setIsCamOff(newOff);
-  }, [isCamOff]);
-
   // ── Handle logout ──
   const handleLogout = useCallback(() => {
     if (user) clearSessionData(user.username);
-    endCall();
     peerRef.current?.destroy();
     logout();
-  }, [user, logout, endCall]);
+  }, [user, logout]);
 
   // ── Open conversation ──
   const openConversation = useCallback((peerId: string) => {
@@ -1448,6 +1220,20 @@ export default function MessengerPage() {
     .bc-scrollbar::-webkit-scrollbar { width: 3px; }
     .bc-scrollbar::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 99px; }
     .bc-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    @keyframes webPulse {
+      0%, 100% { opacity: 0.04; transform: scale(1) rotate(0deg); }
+      50% { opacity: 0.09; transform: scale(1.04) rotate(3deg); }
+    }
+    @keyframes webCornerDraw {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes spideyBubbleIn {
+      from { opacity: 0; transform: scale(0.85) translateY(6px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .spidey-bubble { animation: spideyBubbleIn 0.22s cubic-bezier(0.34,1.4,0.64,1); }
+    .web-bg-pulse { animation: webPulse 6s ease-in-out infinite; }
     .chat-panel-mobile { animation: slideInRight 0.25s cubic-bezier(0.25,0.46,0.45,0.94); }
     .audio-ring {
       position: absolute;
@@ -1702,28 +1488,7 @@ export default function MessengerPage() {
                 {activeConv.isOnline ? "Online" : "Offline"}
               </p>
             </div>
-            {/* Call buttons */}
             <div className="flex items-center gap-1 flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => startCall("audio")}
-                className="p-2.5 rounded-xl transition-all hover:bg-green-500/15 active:scale-95"
-                style={{ color: "#22c55e" }}
-                title="Audio Call"
-                data-ocid="messenger.audio_call.button"
-              >
-                <Phone className="w-5 h-5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => startCall("video")}
-                className="p-2.5 rounded-xl transition-all hover:bg-indigo-500/15 active:scale-95"
-                style={{ color: theme.accent }}
-                title="Video Call"
-                data-ocid="messenger.video_call.button"
-              >
-                <Video className="w-5 h-5" />
-              </button>
               <button
                 type="button"
                 onClick={() => setShowThemes(true)}
@@ -1751,14 +1516,57 @@ export default function MessengerPage() {
               End-to-end encrypted
             </span>
           </div>
-
-          {/* Messages — only this scrolls, not the whole page */}
           <div
-            className="flex-1 overflow-y-auto bc-scrollbar px-3 py-2"
+            className="flex-1 overflow-y-auto bc-scrollbar px-3 py-2 relative"
             style={{ minHeight: 0, overscrollBehavior: "contain" }}
           >
+            {theme.id === "spiderman" && (
+              <div
+                className="absolute inset-0 pointer-events-none overflow-hidden"
+                style={{ zIndex: 0 }}
+              >
+                <svg
+                  viewBox="0 0 400 400"
+                  fill="none"
+                  aria-hidden="true"
+                  className="web-bg-pulse absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80"
+                  style={{ color: "#cc0000" }}
+                >
+                  {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
+                    const r = (a * Math.PI) / 180;
+                    return (
+                      <line
+                        key={a}
+                        x1="200"
+                        y1="200"
+                        x2={200 + 200 * Math.cos(r)}
+                        y2={200 + 200 * Math.sin(r)}
+                        stroke="currentColor"
+                        strokeWidth="0.8"
+                        strokeOpacity="0.4"
+                      />
+                    );
+                  })}
+                  {[40, 80, 120, 160, 200].map((radius) => (
+                    <polygon
+                      key={radius}
+                      points={[0, 45, 90, 135, 180, 225, 270, 315]
+                        .map((a) => {
+                          const r = (a * Math.PI) / 180;
+                          return `${200 + radius * Math.cos(r)},${200 + radius * Math.sin(r)}`;
+                        })
+                        .join(" ")}
+                      stroke="currentColor"
+                      strokeWidth="0.5"
+                      strokeOpacity="0.3"
+                      fill="none"
+                    />
+                  ))}
+                </svg>
+              </div>
+            )}
             {activeConv.messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="flex flex-col items-center justify-center h-full text-center relative z-10">
                 <AvatarBadge name={activeConv.peerName} size={64} />
                 <p className="font-semibold text-white mt-3">
                   {activeConv.peerName}
@@ -1771,7 +1579,7 @@ export default function MessengerPage() {
                 </p>
               </div>
             ) : (
-              <>
+              <div className="relative z-10">
                 {activeConv.messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -1787,7 +1595,7 @@ export default function MessengerPage() {
                       </div>
                     )}
                     <div
-                      className="max-w-[72%] px-3.5 py-2.5 rounded-2xl"
+                      className="max-w-[72%] px-3.5 py-2.5 rounded-2xl spidey-bubble relative overflow-hidden"
                       style={{
                         background:
                           msg.from === "me"
@@ -1801,9 +1609,67 @@ export default function MessengerPage() {
                           msg.from === "me"
                             ? theme.sentText
                             : theme.receivedText,
+                        ...(theme.id === "spiderman" && msg.from === "me"
+                          ? {
+                              boxShadow:
+                                "0 2px 12px rgba(204,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1)",
+                              border: "1px solid rgba(204,0,0,0.3)",
+                            }
+                          : theme.id === "spiderman" && msg.from === "them"
+                            ? {
+                                boxShadow: "0 2px 8px rgba(204,0,0,0.15)",
+                                border: "1px solid rgba(204,0,0,0.2)",
+                              }
+                            : {}),
                       }}
                     >
-                      <p className="text-sm leading-relaxed break-words">
+                      {theme.id === "spiderman" && (
+                        <svg
+                          viewBox="0 0 60 60"
+                          fill="none"
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            width: 40,
+                            height: 40,
+                            right: msg.from === "me" ? -8 : undefined,
+                            left: msg.from === "them" ? -8 : undefined,
+                            bottom: -8,
+                            opacity: 0.12,
+                            color: msg.from === "me" ? "#ff6b6b" : "#fca5a5",
+                          }}
+                        >
+                          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
+                            const r = (a * Math.PI) / 180;
+                            return (
+                              <line
+                                key={a}
+                                x1="30"
+                                y1="30"
+                                x2={30 + 30 * Math.cos(r)}
+                                y2={30 + 30 * Math.sin(r)}
+                                stroke="currentColor"
+                                strokeWidth="1"
+                              />
+                            );
+                          })}
+                          {[10, 20, 28].map((radius) => (
+                            <polygon
+                              key={radius}
+                              points={[0, 45, 90, 135, 180, 225, 270, 315]
+                                .map((a) => {
+                                  const r = (a * Math.PI) / 180;
+                                  return `${30 + radius * Math.cos(r)},${30 + radius * Math.sin(r)}`;
+                                })
+                                .join(" ")}
+                              stroke="currentColor"
+                              strokeWidth="0.6"
+                              fill="none"
+                            />
+                          ))}
+                        </svg>
+                      )}
+                      <p className="text-sm leading-relaxed break-words relative z-10">
                         {msg.text}
                       </p>
                       <div
@@ -1840,11 +1706,9 @@ export default function MessengerPage() {
                 ))}
                 {activeConv.isTyping && <TypingIndicator theme={theme} />}
                 <div ref={messagesEndRef} />
-              </>
+              </div>
             )}
           </div>
-
-          {/* Input bar — fixed at bottom, no page jump */}
           <div
             className="flex-shrink-0 px-3 py-2 flex items-center gap-2"
             style={{
@@ -1940,333 +1804,6 @@ export default function MessengerPage() {
             onClose={() => setShowThemes(false)}
           />
         )}
-      </AnimatePresence>
-
-      {/* ── Incoming call popup ── */}
-      <AnimatePresence>
-        {callState === "incoming" && incomingInfo && (
-          <motion.div
-            initial={{ opacity: 0, y: -80 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -80 }}
-            className="fixed top-4 left-4 right-4 z-50 max-w-sm mx-auto"
-          >
-            <div
-              className="rounded-2xl p-4 shadow-2xl flex items-center gap-4"
-              style={{ background: "#1a1a3a", border: "1px solid #3333aa" }}
-              data-ocid="messenger.incoming_call.dialog"
-            >
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 relative"
-                style={{
-                  background:
-                    incomingInfo.callType === "audio"
-                      ? "rgba(34,197,94,0.2)"
-                      : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-                }}
-              >
-                {incomingInfo.callType === "audio" ? (
-                  <Phone className="w-6 h-6 text-green-400" />
-                ) : (
-                  <Video className="w-6 h-6 text-white" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white">
-                  Incoming {incomingInfo.callType} call
-                </p>
-                <p className="text-xs" style={{ color: "#8888aa" }}>
-                  {incomingInfo.fromId}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCallState("idle");
-                    setIncomingInfo(null);
-                  }}
-                  className="w-11 h-11 rounded-full flex items-center justify-center"
-                  style={{
-                    background: "rgba(239,68,68,0.2)",
-                    color: "#ef4444",
-                  }}
-                  data-ocid="messenger.incoming_call.cancel_button"
-                >
-                  <PhoneOff className="w-5 h-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={acceptCall}
-                  className="w-11 h-11 rounded-full flex items-center justify-center"
-                  style={{
-                    background: "rgba(34,197,94,0.2)",
-                    color: "#22c55e",
-                  }}
-                  data-ocid="messenger.incoming_call.confirm_button"
-                >
-                  <Phone className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Audio call overlay ── */}
-      <AnimatePresence>
-        {(callState === "outgoing" || callState === "in-call") &&
-          callType === "audio" && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 flex flex-col items-center justify-center"
-              style={{
-                background: "linear-gradient(160deg,#060612 0%,#0d0d2a 100%)",
-              }}
-              data-ocid="messenger.audio_call.modal"
-            >
-              {/* Glow orbs */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div
-                  className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full"
-                  style={{
-                    background:
-                      "radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%)",
-                  }}
-                />
-              </div>
-
-              {/* Avatar with rings */}
-              <div className="relative mb-8">
-                <div
-                  className="w-28 h-28 rounded-full flex items-center justify-center"
-                  style={{
-                    background: "rgba(34,197,94,0.15)",
-                    border: "2px solid rgba(34,197,94,0.4)",
-                  }}
-                >
-                  <AvatarBadge
-                    name={activeConv?.peerName ?? incomingInfo?.fromId ?? "?"}
-                    size={80}
-                  />
-                </div>
-                {callState === "outgoing" &&
-                  ["", "500ms", "1000ms"].map((delay, i) => (
-                    <div
-                      key={delay || "ring-0"}
-                      className="audio-ring"
-                      style={{
-                        color: "#22c55e",
-                        animationDelay: delay,
-                        inset: `${-8 - i * 12}px`,
-                      }}
-                    />
-                  ))}
-              </div>
-
-              <p className="text-2xl font-bold text-white mb-1">
-                {activeConv?.peerName ?? incomingInfo?.fromId}
-              </p>
-              <p className="text-sm mb-2" style={{ color: "#8888aa" }}>
-                {callState === "outgoing"
-                  ? "Calling..."
-                  : formatCallDuration(callDuration)}
-              </p>
-
-              {/* Audio wave */}
-              {callState === "in-call" && (
-                <div className="mb-8">
-                  <AudioWave color="#22c55e" />
-                </div>
-              )}
-              {callState === "outgoing" && <div className="mb-8 h-12" />}
-
-              {/* Controls */}
-              <div className="flex items-center gap-8">
-                <button
-                  type="button"
-                  onClick={toggleMute}
-                  className="w-16 h-16 rounded-full flex items-center justify-center transition-all active:scale-90"
-                  style={{
-                    background: isMuted
-                      ? "rgba(239,68,68,0.25)"
-                      : "rgba(255,255,255,0.1)",
-                  }}
-                  data-ocid="messenger.audio_call.mute.toggle"
-                >
-                  {isMuted ? (
-                    <MicOff className="w-7 h-7 text-white" />
-                  ) : (
-                    <Mic className="w-7 h-7 text-white" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={endCall}
-                  className="w-20 h-20 rounded-full flex items-center justify-center transition-all active:scale-90"
-                  style={{ background: "#ef4444" }}
-                  data-ocid="messenger.audio_call.end.button"
-                >
-                  <PhoneOff className="w-8 h-8 text-white" />
-                </button>
-                {/* Speaker placeholder */}
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.05)" }}
-                >
-                  <Shield className="w-6 h-6" style={{ color: "#555570" }} />
-                </div>
-              </div>
-
-              <div className="mt-6 flex items-center gap-2">
-                <Lock className="w-3 h-3" style={{ color: "#555570" }} />
-                <span className="text-xs" style={{ color: "#555570" }}>
-                  End-to-end encrypted audio
-                </span>
-              </div>
-            </motion.div>
-          )}
-      </AnimatePresence>
-
-      {/* ── Video call overlay ── */}
-      <AnimatePresence>
-        {(callState === "outgoing" || callState === "in-call") &&
-          callType === "video" && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 flex flex-col"
-              style={{ background: "#000" }}
-              data-ocid="messenger.video_call.modal"
-            >
-              <div className="flex-1 relative">
-                <video
-                  ref={remoteVideoRef}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  playsInline
-                  muted={false}
-                />
-                {callState === "outgoing" && (
-                  <div
-                    className="absolute inset-0 flex flex-col items-center justify-center"
-                    style={{
-                      background: "rgba(10,10,26,0.85)",
-                      backdropFilter: "blur(8px)",
-                    }}
-                  >
-                    <AvatarBadge name={activeConv?.peerName ?? "?"} size={80} />
-                    <p className="text-white font-semibold text-lg mt-4">
-                      {activeConv?.peerName}
-                    </p>
-                    <p className="text-sm mt-2" style={{ color: "#8888aa" }}>
-                      Calling...
-                    </p>
-                    <div className="flex gap-2 mt-4">
-                      {[0, 1, 2].map((i) => (
-                        <span
-                          key={`vdot-${i}`}
-                          className="w-2 h-2 rounded-full"
-                          style={{
-                            background: "#8b5cf6",
-                            animation: "typingBounce 1.4s ease-in-out infinite",
-                            animationDelay: `${i * 0.2}s`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Local video PiP */}
-                <div
-                  className="absolute bottom-4 right-4 rounded-2xl overflow-hidden shadow-xl"
-                  style={{
-                    width: 96,
-                    height: 128,
-                    border: "2px solid rgba(99,102,241,0.6)",
-                  }}
-                >
-                  <video
-                    ref={localVideoRef}
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    playsInline
-                    muted
-                  />
-                </div>
-
-                {callState === "in-call" && (
-                  <div className="absolute top-4 left-0 right-0 flex justify-center">
-                    <div
-                      className="px-4 py-1.5 rounded-full text-sm font-mono text-white"
-                      style={{
-                        background: "rgba(0,0,0,0.5)",
-                        backdropFilter: "blur(8px)",
-                      }}
-                    >
-                      {formatCallDuration(callDuration)}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div
-                className="flex items-center justify-center gap-6 py-6 flex-shrink-0"
-                style={{
-                  background: "rgba(10,10,26,0.9)",
-                  paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={toggleMute}
-                  className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90"
-                  style={{
-                    background: isMuted
-                      ? "rgba(239,68,68,0.25)"
-                      : "rgba(255,255,255,0.12)",
-                  }}
-                  data-ocid="messenger.call.mute.toggle"
-                >
-                  {isMuted ? (
-                    <MicOff className="w-6 h-6 text-white" />
-                  ) : (
-                    <Mic className="w-6 h-6 text-white" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={endCall}
-                  className="w-16 h-16 rounded-full flex items-center justify-center transition-all active:scale-90"
-                  style={{ background: "#ef4444" }}
-                  data-ocid="messenger.call.end.button"
-                >
-                  <PhoneOff className="w-7 h-7 text-white" />
-                </button>
-                <button
-                  type="button"
-                  onClick={toggleCam}
-                  className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90"
-                  style={{
-                    background: isCamOff
-                      ? "rgba(239,68,68,0.25)"
-                      : "rgba(255,255,255,0.12)",
-                  }}
-                  data-ocid="messenger.call.camera.toggle"
-                >
-                  {isCamOff ? (
-                    <VideoOff className="w-6 h-6 text-white" />
-                  ) : (
-                    <Video className="w-6 h-6 text-white" />
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          )}
       </AnimatePresence>
 
       {/* ── New Chat dialog ── */}

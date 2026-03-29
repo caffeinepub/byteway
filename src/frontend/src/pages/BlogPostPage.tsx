@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Calendar, Tag, User } from "lucide-react";
+import { ArrowLeft, Calendar, Download, Tag, User } from "lucide-react";
 import BlogPostContent from "../components/Blog/BlogPostContent";
 import SEO from "../components/SEO";
 import { useGetBlogPostById } from "../hooks/useBlog";
@@ -44,7 +44,8 @@ export default function BlogPostPage() {
           <div className="text-6xl mb-4">😕</div>
           <h1 className="text-3xl font-bold">Post Not Found</h1>
           <p className="text-muted-foreground">
-            The blog post you're looking for doesn't exist or is not available.
+            The blog post you&apos;re looking for doesn&apos;t exist or is not
+            available.
           </p>
           <Button onClick={() => navigate({ to: "/blog" })} className="mt-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -104,14 +105,27 @@ export default function BlogPostPage() {
             )}
           </header>
 
-          {/* Cover Image */}
+          {/* Cover Image + Download */}
           {post.coverImageId && (
-            <div className="mb-8 rounded-xl overflow-hidden border border-border animate-in fade-in zoom-in duration-700">
-              <img
-                src={post.coverImageId}
-                alt={post.title}
-                className="w-full h-auto object-cover"
-              />
+            <div className="mb-8 animate-in fade-in zoom-in duration-700">
+              <div className="rounded-xl overflow-hidden border border-border">
+                <img
+                  src={post.coverImageId}
+                  alt={post.title}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+              <div className="mt-2 flex justify-end">
+                <a
+                  href={post.coverImageId}
+                  download
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-md px-3 py-1.5 transition-colors hover:bg-muted"
+                  data-ocid="blog.cover_download_button"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download Image
+                </a>
+              </div>
             </div>
           )}
 

@@ -36,6 +36,32 @@ export interface BlogPostMetadata {
   'publishedAt' : Time,
   'author' : string,
 }
+export interface FileInput {
+  'title' : string,
+  'description' : string,
+  'fileSize' : string,
+  'fileType' : FileType,
+  'version' : [] | [string],
+  'category' : string,
+  'fileUrl' : string,
+}
+export interface FilePost {
+  'id' : string,
+  'title' : string,
+  'description' : string,
+  'fileSize' : string,
+  'fileType' : FileType,
+  'version' : [] | [string],
+  'category' : string,
+  'uploadedAt' : Time,
+  'fileUrl' : string,
+}
+export type FileType = { 'APK' : null } |
+  { 'DOC' : null } |
+  { 'EXE' : null } |
+  { 'PDF' : null } |
+  { 'TXT' : null } |
+  { 'OTHER' : null };
 export interface SiteConfiguration {
   'email' : string,
   'address' : string,
@@ -59,6 +85,20 @@ export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export interface VideoInput {
+  'title' : string,
+  'thumbnailUrl' : [] | [string],
+  'description' : string,
+  'videoUrl' : string,
+}
+export interface VideoPost {
+  'id' : string,
+  'title' : string,
+  'thumbnailUrl' : [] | [string],
+  'description' : string,
+  'videoUrl' : string,
+  'uploadedAt' : Time,
+}
 export interface _CaffeineStorageCreateCertificateResult {
   'method' : string,
   'blob_hash' : string,
@@ -87,27 +127,46 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addCalleeIceCandidate' : ActorMethod<[string, string], undefined>,
+  'addCallerIceCandidate' : ActorMethod<[string, string], undefined>,
   'approveBlogPost' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createAndPublishBlogPost' : ActorMethod<[BlogPostInput], string>,
   'createBlogPost' : ActorMethod<[BlogPostInput], string>,
+  'createCallRoom' : ActorMethod<[string], undefined>,
+  'createFile' : ActorMethod<[FileInput], string>,
+  'createVideo' : ActorMethod<[VideoInput], string>,
   'deleteBlogPost' : ActorMethod<[string], undefined>,
+  'deleteCallRoom' : ActorMethod<[string], undefined>,
+  'deleteFile' : ActorMethod<[string], undefined>,
   'deleteSubscription' : ActorMethod<[string], undefined>,
+  'deleteVideo' : ActorMethod<[string], undefined>,
   'getAllBlogPostMetadata' : ActorMethod<[], Array<BlogPostMetadata>>,
   'getAllBlogPostsAdmin' : ActorMethod<[], Array<BlogPost>>,
+  'getAllFiles' : ActorMethod<[], Array<FilePost>>,
   'getAllSubscriptions' : ActorMethod<[], Array<Subscription>>,
+  'getAllVideos' : ActorMethod<[], Array<VideoPost>>,
+  'getAnswer' : ActorMethod<[string], [] | [string]>,
   'getBlogPostById' : ActorMethod<[string], BlogPost>,
   'getBlogPostsByTag' : ActorMethod<[string], Array<BlogPostMetadata>>,
+  'getCalleeIceCandidates' : ActorMethod<[string], Array<string>>,
+  'getCallerIceCandidates' : ActorMethod<[string], Array<string>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getOffer' : ActorMethod<[string], [] | [string]>,
   'getSiteConfiguration' : ActorMethod<[], SiteConfiguration>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'rejectBlogPost' : ActorMethod<[string], undefined>,
+  'roomExists' : ActorMethod<[string], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setAnswer' : ActorMethod<[string, string], undefined>,
+  'setOffer' : ActorMethod<[string, string], undefined>,
   'subscribe' : ActorMethod<[string], string>,
   'updateBlogPost' : ActorMethod<[string, BlogPostInput], undefined>,
+  'updateFile' : ActorMethod<[string, FileInput], undefined>,
   'updateSiteConfiguration' : ActorMethod<[SiteConfiguration], undefined>,
+  'updateVideo' : ActorMethod<[string, VideoInput], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

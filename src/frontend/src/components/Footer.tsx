@@ -73,9 +73,9 @@ export default function Footer() {
   return (
     <>
       <style>{`
-        @keyframes glow-pulse {
-          0%, 100% { box-shadow: 0 0 4px 1px rgba(99,102,241,0.3), 0 0 10px 2px rgba(6,182,212,0.15); }
-          50%       { box-shadow: 0 0 8px 3px rgba(99,102,241,0.5), 0 0 20px 5px rgba(6,182,212,0.3); }
+        @keyframes spiderman-glow-pulse {
+          0%, 100% { box-shadow: 0 0 4px 1px rgba(204,0,0,0.3), 0 0 10px 2px rgba(30,58,138,0.15); }
+          50%       { box-shadow: 0 0 8px 3px rgba(204,0,0,0.55), 0 0 20px 5px rgba(30,58,138,0.3); }
         }
         @keyframes border-flow {
           0%   { background-position: 0% 50%; }
@@ -86,9 +86,9 @@ export default function Footer() {
           0%, 49% { opacity: 1; }
           50%, 100% { opacity: 0.2; }
         }
-        @keyframes clock-glow {
-          0%, 100% { text-shadow: 0 0 4px rgba(6,182,212,0.5), 0 0 8px rgba(99,102,241,0.3); }
-          50%       { text-shadow: 0 0 8px rgba(6,182,212,0.9), 0 0 16px rgba(99,102,241,0.6); }
+        @keyframes spiderman-clock-glow {
+          0%, 100% { text-shadow: 0 0 4px rgba(204,0,0,0.6), 0 0 8px rgba(153,27,27,0.4); }
+          50%       { text-shadow: 0 0 8px rgba(204,0,0,1), 0 0 16px rgba(153,27,27,0.7); }
         }
         @keyframes social-fadein {
           from { opacity: 0; transform: translateY(10px); }
@@ -101,7 +101,7 @@ export default function Footer() {
 
         .footer-divider {
           height: 1px;
-          background: linear-gradient(90deg, transparent, #6366f1, #06b6d4, #6366f1, transparent);
+          background: linear-gradient(90deg, transparent, #cc0000, #1e3a8a, #cc0000, transparent);
           background-size: 200% 100%;
           animation: border-flow 4s ease infinite, divider-glow 2s ease-in-out infinite;
           border: none;
@@ -112,18 +112,18 @@ export default function Footer() {
           flex-direction: column;
           align-items: center;
           gap: 2px;
-          background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.05));
-          border: 1px solid rgba(99,102,241,0.2);
+          background: linear-gradient(135deg, rgba(204,0,0,0.08), rgba(30,58,138,0.07));
+          border: 1px solid rgba(204,0,0,0.25);
           border-radius: 10px;
           padding: 4px 10px;
-          animation: glow-pulse 3s ease-in-out infinite;
+          animation: spiderman-glow-pulse 3s ease-in-out infinite;
           backdrop-filter: blur(8px);
         }
 
         .clock-date {
           font-size: 0.5rem;
           letter-spacing: 0.05em;
-          color: rgba(165,180,252,0.7);
+          color: rgba(252,165,165,0.7);
           font-weight: 500;
         }
 
@@ -139,15 +139,15 @@ export default function Footer() {
           font-weight: 700;
           min-width: 1.8ch;
           text-align: center;
-          background: linear-gradient(180deg, #e0e7ff, #6366f1);
+          background: linear-gradient(180deg, #fca5a5, #cc0000);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          animation: clock-glow 2s ease-in-out infinite;
+          animation: spiderman-clock-glow 2s ease-in-out infinite;
         }
 
         .clock-seconds {
-          background: linear-gradient(180deg, #cffafe, #06b6d4);
+          background: linear-gradient(180deg, #93c5fd, #1e3a8a);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -156,10 +156,10 @@ export default function Footer() {
         .clock-colon {
           font-size: 0.7rem;
           font-weight: 700;
-          color: rgba(99,102,241,0.8);
+          color: rgba(204,0,0,0.85);
           animation: colon-blink 1s step-end infinite;
           padding: 0 1px;
-          -webkit-text-fill-color: rgba(99,102,241,0.8);
+          -webkit-text-fill-color: rgba(204,0,0,0.85);
         }
 
         .social-icon-animated {
@@ -182,7 +182,7 @@ export default function Footer() {
                   alt="ByteWay"
                   className="h-8 w-8 object-contain"
                 />
-                <span className="text-xl font-bold bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text text-transparent">
+                <span className="text-xl font-bold bg-gradient-to-r from-red-500 via-red-400 to-blue-600 bg-clip-text text-transparent">
                   ByteWay
                 </span>
               </div>
@@ -222,7 +222,7 @@ export default function Footer() {
                         href={social.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-110 social-icon-animated"
+                        className="text-muted-foreground hover:text-red-400 transition-all duration-300 hover:scale-110 social-icon-animated"
                         aria-label={social.label}
                         style={
                           mounted

@@ -133,7 +133,7 @@ export default function BlogListPage() {
                   }}
                   data-ocid={`blog.item.${index + 1}`}
                 >
-                  <div className="space-y-4">
+                  <div className="p-6 space-y-4">
                     <h2 className="text-2xl font-bold group-hover:text-chart-1 transition-colors">
                       {post.title}
                     </h2>

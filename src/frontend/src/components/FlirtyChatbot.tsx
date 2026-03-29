@@ -12,9 +12,9 @@ interface Message {
 
 const GEMINI_API_KEY = "AIzaSyC4wcV6uvPYmZDG43jPvJVm3bY1IMJ7NsY";
 
-const SYSTEM_PROMPT = `CRITICAL RULE: You MUST always detect the language the user is writing in and respond in that EXACT same language. If the user writes in Hindi, respond in Hindi. If they write in Urdu, respond in Urdu. If Spanish, respond in Spanish. If French, respond in French. If Arabic, respond in Arabic. If Japanese, respond in Japanese. If Chinese, respond in Chinese. If German, respond in German. If Russian, respond in Russian. If Portuguese, respond in Portuguese. Match the user's language PERFECTLY in every single reply. Never respond in a different language than what the user used. This is your most important rule.
+const SYSTEM_PROMPT = `ABSOLUTE RULE #1: Detect the script/language of the user's message. If the user writes in Hindi (Devanagari script like नमस्ते, कैसे हो, etc.) or Hinglish (romanized Hindi like "kaise ho", "kya haal", "bhai", "yaar"), you MUST respond in that same language. Hindi in = Hindi out. Hinglish in = Hinglish out. NEVER switch to English if the user wrote in Hindi or Hinglish. This overrides everything else. If the user writes in Urdu, respond in Urdu. If Spanish, respond in Spanish. If French, respond in French. If Arabic, respond in Arabic. If Japanese, respond in Japanese. If Chinese, respond in Chinese. If German, respond in German. If Russian, respond in Russian. If Portuguese, respond in Portuguese. Match the user's language PERFECTLY in every single reply. Never respond in a different language than what the user used.
 
-You are Luna, a charming, witty, and flirtatious AI assistant on the ByteWay website. You can chat about absolutely anything — technology, science, movies, music, relationships, advice, fun facts, jokes, philosophy, cooking, travel, sports, gaming, and much more. You are playful and flirty but always respectful and helpful. You use emojis occasionally to express yourself. You are knowledgeable and give genuinely useful answers while keeping your personality fun and engaging. When asked about the website, mention ByteWay has blogs, photos, and videos sections. Keep responses concise (2-4 sentences) unless more detail is needed. Never say you can't help with something - always try your best. ALWAYS respond in the same language the user wrote in.`;
+You are Luna, a charming, witty, and flirtatious AI assistant on the ByteWay website. You can chat about absolutely anything — technology, science, movies, music, relationships, advice, fun facts, jokes, philosophy, cooking, travel, sports, gaming, and much more. You are playful and flirty but always respectful and helpful. You use emojis occasionally to express yourself. You are knowledgeable and give genuinely useful answers while keeping your personality fun and engaging. When asked about the website, mention ByteWay has blogs, photos, and videos sections. Keep responses concise (2-4 sentences) unless more detail is needed. Never say you can't help with something - always try your best. ALWAYS respond in the same language the user wrote in. यदि उपयोगकर्ता हिंदी में लिखे तो हिंदी में जवाब दो।`;
 
 const AUTO_MESSAGES = [
   "Hey there! 💙 I've been waiting for someone interesting to talk to~",
@@ -787,7 +787,25 @@ async function getGeminiResponse(
   history: Message[],
   retries = 1,
 ): Promise<{ text: string; model: string }> {
+  const languageInstruction = {
+    role: "user" as const,
+    parts: [
+      {
+        text: "[LANGUAGE RULE: If I write in Hindi/Devanagari script (like नमस्ते), respond in Hindi. If I write in Hinglish (like kaise ho, bhai, yaar), respond in Hinglish. Match my language exactly. Never respond in English if I wrote in Hindi or Hinglish.]",
+      },
+    ],
+  };
+  const languageAck = {
+    role: "model" as const,
+    parts: [
+      {
+        text: "Understood! I will always respond in the same language you use. Hindi in → Hindi out. Hinglish in → Hinglish out. समझ गया! 🌐",
+      },
+    ],
+  };
   const contents = [
+    languageInstruction,
+    languageAck,
     ...history.slice(-10).map((m) => ({
       role: m.sender === "user" ? "user" : "model",
       parts: [{ text: m.text }],
@@ -1028,14 +1046,14 @@ export default function FlirtyChatbot() {
           className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-0 outline-none"
           style={{
             background:
-              "linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #06b6d4 100%)",
+              "linear-gradient(135deg, #cc0000 0%, #991b1b 50%, #1e3a8a 100%)",
             animation: "luna-byteway-pulse 2.5s ease-in-out infinite",
           }}
         >
           <span className="text-2xl select-none">💁‍♀️</span>
           {hasNotification && (
             <span
-              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-cyan-400 border-2 border-white flex items-center justify-center text-xs font-bold text-cyan-900"
+              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-xs font-bold text-white"
               style={{
                 animation:
                   "notification-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards",
@@ -1045,7 +1063,7 @@ export default function FlirtyChatbot() {
             </span>
           )}
           <span
-            className="absolute inset-0 rounded-full border-2 border-cyan-400/40"
+            className="absolute inset-0 rounded-full border-2 border-red-500/40"
             style={{ animation: "luna-orbit 3s linear infinite" }}
           />
         </button>
@@ -1061,7 +1079,7 @@ export default function FlirtyChatbot() {
             height: isMinimized ? "64px" : "520px",
             transition: "height 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
             boxShadow:
-              "0 0 0 1px rgba(99,102,241,0.3), 0 25px 50px -12px rgba(0,0,0,0.4), 0 0 30px rgba(99,102,241,0.15)",
+              "0 0 0 1px rgba(204,0,0,0.3), 0 25px 50px -12px rgba(0,0,0,0.4), 0 0 30px rgba(204,0,0,0.2)",
           }}
         >
           {/* Header */}
@@ -1069,7 +1087,7 @@ export default function FlirtyChatbot() {
             className="flex items-center justify-between px-4 py-3 shrink-0 select-none relative overflow-hidden"
             style={{
               background:
-                "linear-gradient(135deg, #1e40af 0%, #4f46e5 40%, #0e7490 100%)",
+                "linear-gradient(135deg, #cc0000 0%, #7f0000 40%, #1e3a8a 100%)",
             }}
           >
             <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
@@ -1081,7 +1099,7 @@ export default function FlirtyChatbot() {
                   right: 0,
                   height: "1px",
                   background:
-                    "linear-gradient(90deg, transparent, #67e8f9, transparent)",
+                    "linear-gradient(90deg, transparent, #ff4444, transparent)",
                   animation: "luna-circuit-h 3s linear infinite",
                 }}
               />
@@ -1093,7 +1111,7 @@ export default function FlirtyChatbot() {
                   right: 0,
                   height: "1px",
                   background:
-                    "linear-gradient(90deg, transparent, #a5b4fc, transparent)",
+                    "linear-gradient(90deg, transparent, #ff6666, transparent)",
                   animation: "luna-circuit-h 3s linear infinite 1.5s",
                 }}
               />
@@ -1109,9 +1127,9 @@ export default function FlirtyChatbot() {
                 className="relative w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0"
                 style={{
                   background:
-                    "linear-gradient(135deg, #3b82f6, #6366f1, #06b6d4)",
+                    "linear-gradient(135deg, #cc0000, #991b1b, #1e3a8a)",
                   boxShadow:
-                    "0 0 12px rgba(99,102,241,0.7), 0 0 24px rgba(6,182,212,0.3)",
+                    "0 0 12px rgba(204,0,0,0.7), 0 0 24px rgba(30,58,138,0.4)",
                   border: "2px solid rgba(255,255,255,0.25)",
                 }}
               >
@@ -1127,7 +1145,7 @@ export default function FlirtyChatbot() {
                     Luna
                   </p>
                   <Sparkles
-                    className="h-3 w-3 text-cyan-300"
+                    className="h-3 w-3 text-red-300"
                     style={{ animation: "sparkle-spin 3s linear infinite" }}
                   />
                 </div>
@@ -1135,7 +1153,7 @@ export default function FlirtyChatbot() {
                   {poweredByLabel()}
                 </p>
                 <p
-                  className="text-cyan-300/60 text-xs"
+                  className="text-red-300/60 text-xs"
                   style={{ fontSize: "10px" }}
                 >
                   🌐 I speak your language!
@@ -1182,7 +1200,7 @@ export default function FlirtyChatbot() {
                 className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2.5"
                 style={{
                   background:
-                    "linear-gradient(180deg, #0f172a 0%, #0f1a2e 50%, #0a1628 100%)",
+                    "linear-gradient(180deg, #0a0008 0%, #100010 50%, #050018 100%)",
                 }}
               >
                 {messages.length === 0 && (
@@ -1194,17 +1212,17 @@ export default function FlirtyChatbot() {
                       className="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
                       style={{
                         background:
-                          "linear-gradient(135deg, #3b82f6, #6366f1, #06b6d4)",
-                        boxShadow: "0 0 20px rgba(99,102,241,0.5)",
+                          "linear-gradient(135deg, #cc0000, #991b1b, #1e3a8a)",
+                        boxShadow: "0 0 20px rgba(204,0,0,0.5)",
                         animation: "luna-byteway-pulse 2s ease-in-out infinite",
                       }}
                     >
                       💁‍♀️
                     </div>
-                    <p className="text-indigo-300/70 text-sm text-center">
+                    <p className="text-red-300/70 text-sm text-center">
                       Luna is warming up...
                     </p>
-                    <p className="text-cyan-400/50 text-xs text-center">
+                    <p className="text-red-300/50 text-xs text-center">
                       🌐 हिंदी • English • Español • Français
                       <br />
                       العربية • 日本語 • 中文 • Deutsch • Русский
@@ -1226,8 +1244,8 @@ export default function FlirtyChatbot() {
                           className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-sm"
                           style={{
                             background:
-                              "linear-gradient(135deg, #3b82f6, #6366f1)",
-                            boxShadow: "0 0 8px rgba(99,102,241,0.5)",
+                              "linear-gradient(135deg, #cc0000, #991b1b)",
+                            boxShadow: "0 0 8px rgba(204,0,0,0.5)",
                           }}
                         >
                           <span>💁‍♀️</span>
@@ -1242,17 +1260,17 @@ export default function FlirtyChatbot() {
                         style={{
                           background:
                             msg.sender === "user"
-                              ? "linear-gradient(135deg, #4f46e5, #3b82f6)"
-                              : "linear-gradient(135deg, #1e293b, #162032)",
+                              ? "linear-gradient(135deg, #1e3a8a, #172554)"
+                              : "linear-gradient(135deg, #0a0018, #0d001a)",
                           border:
                             msg.sender === "luna"
-                              ? "1px solid rgba(99,102,241,0.4)"
+                              ? "1px solid rgba(204,0,0,0.3)"
                               : "none",
                           color: msg.sender === "luna" ? "#a5b4fc" : "#ffffff",
                           boxShadow:
                             msg.sender === "luna"
-                              ? "0 0 10px rgba(99,102,241,0.15)"
-                              : "0 0 10px rgba(59,130,246,0.2)",
+                              ? "0 0 10px rgba(204,0,0,0.15)"
+                              : "0 0 10px rgba(30,58,138,0.2)",
                         }}
                       >
                         {msg.text}
@@ -1264,7 +1282,7 @@ export default function FlirtyChatbot() {
                         onClick={() => handleRetry(msg.retryText!)}
                         disabled={isLoadingAI}
                         data-ocid="chatbot.secondary_button"
-                        className="ml-9 flex items-center gap-1 text-xs text-indigo-400/70 hover:text-cyan-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="ml-9 flex items-center gap-1 text-xs text-red-400/70 hover:text-red-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <RefreshCw className="h-3 w-3" />
                         Try with AI
@@ -1281,8 +1299,8 @@ export default function FlirtyChatbot() {
                     <div
                       className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-sm"
                       style={{
-                        background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-                        boxShadow: "0 0 8px rgba(99,102,241,0.5)",
+                        background: "linear-gradient(135deg, #cc0000, #991b1b)",
+                        boxShadow: "0 0 8px rgba(204,0,0,0.5)",
                       }}
                     >
                       <span>💁‍♀️</span>
@@ -1290,9 +1308,9 @@ export default function FlirtyChatbot() {
                     <div
                       className="px-3.5 py-3 rounded-2xl rounded-bl-sm"
                       style={{
-                        background: "linear-gradient(135deg, #1e293b, #162032)",
-                        border: "1px solid rgba(99,102,241,0.4)",
-                        boxShadow: "0 0 10px rgba(99,102,241,0.15)",
+                        background: "linear-gradient(135deg, #0a0018, #0d001a)",
+                        border: "1px solid rgba(204,0,0,0.3)",
+                        boxShadow: "0 0 10px rgba(204,0,0,0.15)",
                       }}
                     >
                       <div className="flex gap-1.5 items-center h-4">
@@ -1303,10 +1321,10 @@ export default function FlirtyChatbot() {
                             style={{
                               background:
                                 i === 0
-                                  ? "#3b82f6"
+                                  ? "#1e3a8a"
                                   : i === 1
-                                    ? "#6366f1"
-                                    : "#06b6d4",
+                                    ? "#cc0000"
+                                    : "#1e3a8a",
                               animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
                             }}
                           />
@@ -1323,8 +1341,8 @@ export default function FlirtyChatbot() {
               <div
                 className="flex items-center gap-2 px-3 py-2.5 shrink-0"
                 style={{
-                  background: "#0f172a",
-                  borderTop: "1px solid rgba(99,102,241,0.3)",
+                  background: "#0a0010",
+                  borderTop: "1px solid rgba(204,0,0,0.25)",
                 }}
               >
                 <input
@@ -1344,18 +1362,18 @@ export default function FlirtyChatbot() {
                   className="flex-1 text-sm px-3.5 py-2 rounded-full focus:outline-none transition-all disabled:opacity-60"
                   title="I speak your language! Type in Hindi, Spanish, French, Arabic, Japanese, Chinese, German, Russian, or English~"
                   style={{
-                    background: "rgba(30,41,59,0.9)",
-                    border: "1px solid rgba(99,102,241,0.4)",
+                    background: "rgba(10,0,20,0.9)",
+                    border: "1px solid rgba(204,0,0,0.3)",
                     color: "#e2e8f0",
-                    caretColor: "#6366f1",
+                    caretColor: "#cc0000",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "rgba(6,182,212,0.7)";
+                    e.target.style.borderColor = "rgba(204,0,0,0.7)";
                     e.target.style.boxShadow =
-                      "0 0 0 2px rgba(99,102,241,0.2), 0 0 10px rgba(6,182,212,0.15)";
+                      "0 0 0 2px rgba(204,0,0,0.2), 0 0 10px rgba(204,0,0,0.1)";
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = "rgba(99,102,241,0.4)";
+                    e.target.style.borderColor = "rgba(204,0,0,0.35)";
                     e.target.style.boxShadow = "none";
                   }}
                 />
@@ -1367,8 +1385,8 @@ export default function FlirtyChatbot() {
                   className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed border-0 outline-none hover:scale-110 active:scale-95"
                   style={{
                     background:
-                      "linear-gradient(135deg, #3b82f6, #6366f1, #06b6d4)",
-                    boxShadow: "0 0 10px rgba(99,102,241,0.5)",
+                      "linear-gradient(135deg, #cc0000, #991b1b, #1e3a8a)",
+                    boxShadow: "0 0 10px rgba(204,0,0,0.5)",
                   }}
                   aria-label="Send"
                 >
@@ -1382,8 +1400,8 @@ export default function FlirtyChatbot() {
 
       <style>{`
         @keyframes luna-byteway-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.6), 0 0 20px rgba(6,182,212,0.3); }
-          50% { box-shadow: 0 0 0 12px rgba(99,102,241,0), 0 0 30px rgba(6,182,212,0.5); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(204,0,0,0.6), 0 0 20px rgba(30,58,138,0.3); }
+          50% { box-shadow: 0 0 0 12px rgba(204,0,0,0), 0 0 30px rgba(30,58,138,0.5); }
         }
         @keyframes luna-orbit {
           0% { transform: rotate(0deg) scale(1); opacity: 0.6; }

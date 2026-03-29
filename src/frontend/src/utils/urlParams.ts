@@ -213,25 +213,18 @@ export function getSecretParameter(paramName: string): string | null {
   return getSecretFromHash(paramName);
 }
 
-/**
- * Stores a redirect path in sessionStorage
- * @param path - The path to redirect to after login
- */
-export function setRedirectPath(path: string): void {
-  storeSessionParameter("redirectPath", path);
-}
-
-/**
- * Gets and returns the stored redirect path (does not clear it)
- * @returns The redirect path if set, null otherwise
- */
 export function getRedirectPath(): string | null {
-  return getSessionParameter("redirectPath");
+  try {
+    return sessionStorage.getItem("_byteway_redirect");
+  } catch {
+    return null;
+  }
 }
 
-/**
- * Clears the stored redirect path from sessionStorage
- */
 export function clearRedirectParam(): void {
-  clearSessionParameter("redirectPath");
+  try {
+    sessionStorage.removeItem("_byteway_redirect");
+  } catch {
+    // ignore
+  }
 }

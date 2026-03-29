@@ -31,6 +31,29 @@ export const BlogPostInput = IDL.Record({
   'tags' : IDL.Vec(IDL.Text),
   'author' : IDL.Text,
 });
+export const FileType = IDL.Variant({
+  'APK' : IDL.Null,
+  'DOC' : IDL.Null,
+  'EXE' : IDL.Null,
+  'PDF' : IDL.Null,
+  'TXT' : IDL.Null,
+  'OTHER' : IDL.Null,
+});
+export const FileInput = IDL.Record({
+  'title' : IDL.Text,
+  'description' : IDL.Text,
+  'fileSize' : IDL.Text,
+  'fileType' : FileType,
+  'version' : IDL.Opt(IDL.Text),
+  'category' : IDL.Text,
+  'fileUrl' : IDL.Text,
+});
+export const VideoInput = IDL.Record({
+  'title' : IDL.Text,
+  'thumbnailUrl' : IDL.Opt(IDL.Text),
+  'description' : IDL.Text,
+  'videoUrl' : IDL.Text,
+});
 export const Time = IDL.Int;
 export const BlogPostMetadata = IDL.Record({
   'id' : IDL.Text,
@@ -53,10 +76,29 @@ export const BlogPost = IDL.Record({
   'publishedAt' : Time,
   'author' : IDL.Text,
 });
+export const FilePost = IDL.Record({
+  'id' : IDL.Text,
+  'title' : IDL.Text,
+  'description' : IDL.Text,
+  'fileSize' : IDL.Text,
+  'fileType' : FileType,
+  'version' : IDL.Opt(IDL.Text),
+  'category' : IDL.Text,
+  'uploadedAt' : Time,
+  'fileUrl' : IDL.Text,
+});
 export const Subscription = IDL.Record({
   'id' : IDL.Text,
   'subscribedAt' : Time,
   'email' : IDL.Text,
+});
+export const VideoPost = IDL.Record({
+  'id' : IDL.Text,
+  'title' : IDL.Text,
+  'thumbnailUrl' : IDL.Opt(IDL.Text),
+  'description' : IDL.Text,
+  'videoUrl' : IDL.Text,
+  'uploadedAt' : Time,
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 export const SiteConfiguration = IDL.Record({
@@ -101,27 +143,49 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addCalleeIceCandidate' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'addCallerIceCandidate' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'approveBlogPost' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createAndPublishBlogPost' : IDL.Func([BlogPostInput], [IDL.Text], []),
   'createBlogPost' : IDL.Func([BlogPostInput], [IDL.Text], []),
+  'createCallRoom' : IDL.Func([IDL.Text], [], []),
+  'createFile' : IDL.Func([FileInput], [IDL.Text], []),
+  'createVideo' : IDL.Func([VideoInput], [IDL.Text], []),
   'deleteBlogPost' : IDL.Func([IDL.Text], [], []),
+  'deleteCallRoom' : IDL.Func([IDL.Text], [], []),
+  'deleteFile' : IDL.Func([IDL.Text], [], []),
   'deleteSubscription' : IDL.Func([IDL.Text], [], []),
+  'deleteVideo' : IDL.Func([IDL.Text], [], []),
   'getAllBlogPostMetadata' : IDL.Func(
       [],
       [IDL.Vec(BlogPostMetadata)],
       ['query'],
     ),
   'getAllBlogPostsAdmin' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
+  'getAllFiles' : IDL.Func([], [IDL.Vec(FilePost)], ['query']),
   'getAllSubscriptions' : IDL.Func([], [IDL.Vec(Subscription)], ['query']),
+  'getAllVideos' : IDL.Func([], [IDL.Vec(VideoPost)], ['query']),
+  'getAnswer' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Text)], ['query']),
   'getBlogPostById' : IDL.Func([IDL.Text], [BlogPost], ['query']),
   'getBlogPostsByTag' : IDL.Func(
       [IDL.Text],
       [IDL.Vec(BlogPostMetadata)],
       ['query'],
     ),
+  'getCalleeIceCandidates' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(IDL.Text)],
+      ['query'],
+    ),
+  'getCallerIceCandidates' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(IDL.Text)],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getOffer' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Text)], ['query']),
   'getSiteConfiguration' : IDL.Func([], [SiteConfiguration], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
@@ -130,10 +194,15 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'rejectBlogPost' : IDL.Func([IDL.Text], [], []),
+  'roomExists' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setAnswer' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'setOffer' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'subscribe' : IDL.Func([IDL.Text], [IDL.Text], []),
   'updateBlogPost' : IDL.Func([IDL.Text, BlogPostInput], [], []),
+  'updateFile' : IDL.Func([IDL.Text, FileInput], [], []),
   'updateSiteConfiguration' : IDL.Func([SiteConfiguration], [], []),
+  'updateVideo' : IDL.Func([IDL.Text, VideoInput], [], []),
 });
 
 export const idlInitArgs = [];
@@ -162,6 +231,29 @@ export const idlFactory = ({ IDL }) => {
     'tags' : IDL.Vec(IDL.Text),
     'author' : IDL.Text,
   });
+  const FileType = IDL.Variant({
+    'APK' : IDL.Null,
+    'DOC' : IDL.Null,
+    'EXE' : IDL.Null,
+    'PDF' : IDL.Null,
+    'TXT' : IDL.Null,
+    'OTHER' : IDL.Null,
+  });
+  const FileInput = IDL.Record({
+    'title' : IDL.Text,
+    'description' : IDL.Text,
+    'fileSize' : IDL.Text,
+    'fileType' : FileType,
+    'version' : IDL.Opt(IDL.Text),
+    'category' : IDL.Text,
+    'fileUrl' : IDL.Text,
+  });
+  const VideoInput = IDL.Record({
+    'title' : IDL.Text,
+    'thumbnailUrl' : IDL.Opt(IDL.Text),
+    'description' : IDL.Text,
+    'videoUrl' : IDL.Text,
+  });
   const Time = IDL.Int;
   const BlogPostMetadata = IDL.Record({
     'id' : IDL.Text,
@@ -184,10 +276,29 @@ export const idlFactory = ({ IDL }) => {
     'publishedAt' : Time,
     'author' : IDL.Text,
   });
+  const FilePost = IDL.Record({
+    'id' : IDL.Text,
+    'title' : IDL.Text,
+    'description' : IDL.Text,
+    'fileSize' : IDL.Text,
+    'fileType' : FileType,
+    'version' : IDL.Opt(IDL.Text),
+    'category' : IDL.Text,
+    'uploadedAt' : Time,
+    'fileUrl' : IDL.Text,
+  });
   const Subscription = IDL.Record({
     'id' : IDL.Text,
     'subscribedAt' : Time,
     'email' : IDL.Text,
+  });
+  const VideoPost = IDL.Record({
+    'id' : IDL.Text,
+    'title' : IDL.Text,
+    'thumbnailUrl' : IDL.Opt(IDL.Text),
+    'description' : IDL.Text,
+    'videoUrl' : IDL.Text,
+    'uploadedAt' : Time,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
   const SiteConfiguration = IDL.Record({
@@ -232,27 +343,49 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addCalleeIceCandidate' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'addCallerIceCandidate' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'approveBlogPost' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createAndPublishBlogPost' : IDL.Func([BlogPostInput], [IDL.Text], []),
     'createBlogPost' : IDL.Func([BlogPostInput], [IDL.Text], []),
+    'createCallRoom' : IDL.Func([IDL.Text], [], []),
+    'createFile' : IDL.Func([FileInput], [IDL.Text], []),
+    'createVideo' : IDL.Func([VideoInput], [IDL.Text], []),
     'deleteBlogPost' : IDL.Func([IDL.Text], [], []),
+    'deleteCallRoom' : IDL.Func([IDL.Text], [], []),
+    'deleteFile' : IDL.Func([IDL.Text], [], []),
     'deleteSubscription' : IDL.Func([IDL.Text], [], []),
+    'deleteVideo' : IDL.Func([IDL.Text], [], []),
     'getAllBlogPostMetadata' : IDL.Func(
         [],
         [IDL.Vec(BlogPostMetadata)],
         ['query'],
       ),
     'getAllBlogPostsAdmin' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
+    'getAllFiles' : IDL.Func([], [IDL.Vec(FilePost)], ['query']),
     'getAllSubscriptions' : IDL.Func([], [IDL.Vec(Subscription)], ['query']),
+    'getAllVideos' : IDL.Func([], [IDL.Vec(VideoPost)], ['query']),
+    'getAnswer' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Text)], ['query']),
     'getBlogPostById' : IDL.Func([IDL.Text], [BlogPost], ['query']),
     'getBlogPostsByTag' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(BlogPostMetadata)],
         ['query'],
       ),
+    'getCalleeIceCandidates' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(IDL.Text)],
+        ['query'],
+      ),
+    'getCallerIceCandidates' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(IDL.Text)],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getOffer' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Text)], ['query']),
     'getSiteConfiguration' : IDL.Func([], [SiteConfiguration], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
@@ -261,10 +394,15 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'rejectBlogPost' : IDL.Func([IDL.Text], [], []),
+    'roomExists' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setAnswer' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'setOffer' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'subscribe' : IDL.Func([IDL.Text], [IDL.Text], []),
     'updateBlogPost' : IDL.Func([IDL.Text, BlogPostInput], [], []),
+    'updateFile' : IDL.Func([IDL.Text, FileInput], [], []),
     'updateSiteConfiguration' : IDL.Func([SiteConfiguration], [], []),
+    'updateVideo' : IDL.Func([IDL.Text, VideoInput], [], []),
   });
 };
 
