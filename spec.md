@@ -1,45 +1,50 @@
-# ByteWay / ChatWave - ByteChat Enhancements
+# ByteWay / ChatWave - Smooth Animations & UI Enhancement
 
 ## Current State
-Bytchat page (MessengerPage.tsx) is a full messenger-style app with:
-- User login/register with unique ID
-- Text chat with E2E encryption (ECDH + AES-GCM)
-- Video call via WebRTC (code-based connection)
-- Seen indicators, typing indicators, unread badges
-- Mobile-first layout
-
-Known issues:
-- Screen jumps/scrolls up automatically when typing in chat
-- No audio-only call option
-- After unique ID connection, call buttons not clearly shown to both parties
-- Lag in chat/video
-- No chat theme/color customization
-- No chat message animations
+The app is a full Spider-Man themed (red/navy blue) blog + chat + video + downloads platform. It already has:
+- Basic animate-in/fade-in classes in index.css
+- Some motion/react animations on VideosPage card entrances
+- Spider web animations on header logo
+- Luna chatbot pulse animation
+- Footer divider glow animations
+- Clock glow animations
 
 ## Requested Changes (Diff)
 
 ### Add
-- Audio call feature (WebRTC audio-only, no video)
-- After two users connect via unique ID, both see audio call and video call buttons prominently
-- Chat theme selector: users can pick from multiple color themes (dark, light, purple, blue, green, sunset etc.)
-- Chat bubble color customizer
-- Message send/receive animations (slide-in, fade-in)
-- Smooth emoji/reaction animations
+- Page transition animations: smooth fade+slide when navigating between pages
+- Scroll-reveal animations: elements animate in as they enter viewport (use Intersection Observer)
+- Staggered card entrance animations on Blog list, Videos grid, Downloads grid
+- Particle/web-thread floating background effect on HomePage hero section
+- Animated gradient shimmer on hero heading text
+- Hover micro-interactions: cards lift with glow, buttons ripple, nav links spark
+- Animated spider-web SVG background pattern subtly moving on HomePage
+- Smooth page loader/progress bar at top on navigation
+- Floating particle dots (web-strand style) as ambient background
+- Pulse glow on CTA buttons
+- ByteWay header: animated underline on active nav link, logo hover spin enhanced
+- Footer: enhanced social icon hover with glow pop
+- ByteChat: smoother message bubble entrance (slide in from side)
+- Luna chatbot button: more elaborate spider-web radiate animation on open
 
 ### Modify
-- Fix body/page scroll when typing in chat input -- input must be fixed at bottom, page must NOT scroll up
-- Fix keyboard appearing on mobile causing page jump
-- Reduce lag: debounce typing events, optimize state updates, use CSS transforms instead of layout changes
-- Audio call button clearly visible alongside video call button in chat header after connection
-- Improve WebRTC ICE handling for faster connection
+- index.css: add comprehensive animation keyframes (float, shimmer, particle-drift, web-strand, glow-pulse, ripple, spin-slow)
+- HomePage: add scroll-reveal wrapper utility, enhance hero with animated particles
+- Layout.tsx: wrap main content with smoother page transition
+- ByteWayHeader: enhanced active link indicator animation
+- All page grids/cards: staggered entrance with delay
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Fix scroll/jump bug: use `position: fixed` or `position: sticky` for chat input, prevent `window.scrollTo` interference, lock body scroll only in chat view
-2. Add audio call: new WebRTC mode with `audio: true, video: false`, separate audio call UI with mute/end buttons
-3. Add call buttons after unique ID connection: show Audio Call + Video Call buttons in chat header when a peer is connected
-4. Theme/color system: store selected theme in localStorage, provide 6-8 preset themes with different bubble colors and backgrounds, add theme picker panel in chat settings
-5. Message animations: CSS keyframes for incoming/outgoing message slide-in
-6. Performance: batch state updates, use `useCallback`/`useMemo`, reduce re-renders
+1. Enhance index.css with 15+ new animation keyframes: shimmer, float, particle-drift, glow-pulse, ripple, web-radiate, slide-up-fade, bounce-in, spin-slow, gradient-flow
+2. Add a ScrollReveal wrapper component that uses IntersectionObserver to trigger animate-in classes
+3. Update HomePage hero with floating spider-web particle background (pure CSS/SVG, no JS library)
+4. Update Layout.tsx main content transition to use smooth fade+translate
+5. Update BlogListPage, VideosPage, DownloadsPage cards with staggered entrance
+6. Add animated gradient shimmer to hero h1 text
+7. Enhance button hover states with glow/ripple
+8. Enhance ByteChat message bubbles with slide-in from side
+9. Luna chatbot floating button: add web-radiate rings on hover/open
+10. Validate and build

@@ -1038,35 +1038,46 @@ export default function FlirtyChatbot() {
     <>
       {/* Floating Button */}
       {!isOpen && (
-        <button
-          type="button"
-          onClick={handleOpen}
-          data-ocid="chatbot.open_modal_button"
-          aria-label="Chat with Luna"
-          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-0 outline-none"
-          style={{
-            background:
-              "linear-gradient(135deg, #cc0000 0%, #991b1b 50%, #1e3a8a 100%)",
-            animation: "luna-byteway-pulse 2.5s ease-in-out infinite",
-          }}
-        >
-          <span className="text-2xl select-none">💁‍♀️</span>
-          {hasNotification && (
-            <span
-              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-xs font-bold text-white"
-              style={{
-                animation:
-                  "notification-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards",
-              }}
-            >
-              !
-            </span>
-          )}
+        <div className="fixed bottom-6 right-6 z-50 w-16 h-16">
+          {/* Concentric web-radiate rings */}
           <span
-            className="absolute inset-0 rounded-full border-2 border-red-500/40"
-            style={{ animation: "luna-orbit 3s linear infinite" }}
+            className="absolute inset-0 rounded-full border-2 border-red-500/50 pointer-events-none"
+            style={{ animation: "web-radiate 1.8s ease-out infinite" }}
           />
-        </button>
+          <span
+            className="absolute inset-0 rounded-full border-2 border-blue-500/40 pointer-events-none"
+            style={{ animation: "web-radiate 1.8s ease-out infinite 0.9s" }}
+          />
+          <button
+            type="button"
+            onClick={handleOpen}
+            data-ocid="chatbot.open_modal_button"
+            aria-label="Chat with Luna"
+            className="relative w-16 h-16 rounded-full flex items-center justify-center cursor-pointer border-0 outline-none"
+            style={{
+              background:
+                "linear-gradient(135deg, #cc0000 0%, #991b1b 50%, #1e3a8a 100%)",
+              animation: "luna-byteway-pulse 2.5s ease-in-out infinite",
+            }}
+          >
+            <span className="text-2xl select-none">💁‍♀️</span>
+            {hasNotification && (
+              <span
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-xs font-bold text-white"
+                style={{
+                  animation:
+                    "notification-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards",
+                }}
+              >
+                !
+              </span>
+            )}
+            <span
+              className="absolute inset-0 rounded-full border-2 border-red-500/40"
+              style={{ animation: "luna-orbit 3s linear infinite" }}
+            />
+          </button>
+        </div>
       )}
 
       {/* Chat Window */}

@@ -213,18 +213,21 @@ export function getSecretParameter(paramName: string): string | null {
   return getSecretFromHash(paramName);
 }
 
-export function getRedirectPath(): string | null {
-  try {
-    return sessionStorage.getItem("_byteway_redirect");
-  } catch {
-    return null;
-  }
+/**
+ * Clears any stored redirect path from sessionStorage
+ */
+export function clearRedirectParam(): void {
+  clearSessionParameter("redirectPath");
 }
 
-export function clearRedirectParam(): void {
-  try {
-    sessionStorage.removeItem("_byteway_redirect");
-  } catch {
-    // ignore
+/**
+ * Gets the stored redirect path (if any) and clears it
+ * @returns The redirect path if set, null otherwise
+ */
+export function getRedirectPath(): string | null {
+  const path = getSessionParameter("redirectPath");
+  if (path) {
+    clearSessionParameter("redirectPath");
   }
+  return path;
 }

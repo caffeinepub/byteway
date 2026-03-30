@@ -188,21 +188,6 @@ const THEMES: ChatTheme[] = [
     borderColor: "#e0e2f0",
     accent: "#4f46e5",
   },
-  {
-    id: "spiderman",
-    name: "Spider-Man",
-    label: "🕷️",
-    bg: "#0a0005",
-    sidebarBg: "#110008",
-    headerBg: "rgba(12,0,8,0.97)",
-    sentBubble: "linear-gradient(135deg,#cc0000,#991b1b)",
-    receivedBubble: "#1a0a0e",
-    sentText: "#fff",
-    receivedText: "#fca5a5",
-    inputBg: "#160008",
-    borderColor: "#3a0010",
-    accent: "#cc0000",
-  },
 ];
 
 const THEME_KEY = "bytechat_theme";
@@ -720,7 +705,7 @@ export default function MessengerPage() {
   // ── Theme ──
   const [themeId, setThemeId] = useState<string>(() => {
     try {
-      return localStorage.getItem(THEME_KEY) ?? "spiderman";
+      return localStorage.getItem(THEME_KEY) ?? "dark";
     } catch {
       return "dark";
     }
@@ -1220,20 +1205,6 @@ export default function MessengerPage() {
     .bc-scrollbar::-webkit-scrollbar { width: 3px; }
     .bc-scrollbar::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 99px; }
     .bc-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    @keyframes webPulse {
-      0%, 100% { opacity: 0.04; transform: scale(1) rotate(0deg); }
-      50% { opacity: 0.09; transform: scale(1.04) rotate(3deg); }
-    }
-    @keyframes webCornerDraw {
-      from { opacity: 0; transform: scale(0.7); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    @keyframes spideyBubbleIn {
-      from { opacity: 0; transform: scale(0.85) translateY(6px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    .spidey-bubble { animation: spideyBubbleIn 0.22s cubic-bezier(0.34,1.4,0.64,1); }
-    .web-bg-pulse { animation: webPulse 6s ease-in-out infinite; }
     .chat-panel-mobile { animation: slideInRight 0.25s cubic-bezier(0.25,0.46,0.45,0.94); }
     .audio-ring {
       position: absolute;
@@ -1517,56 +1488,11 @@ export default function MessengerPage() {
             </span>
           </div>
           <div
-            className="flex-1 overflow-y-auto bc-scrollbar px-3 py-2 relative"
+            className="flex-1 overflow-y-auto bc-scrollbar px-3 py-2"
             style={{ minHeight: 0, overscrollBehavior: "contain" }}
           >
-            {theme.id === "spiderman" && (
-              <div
-                className="absolute inset-0 pointer-events-none overflow-hidden"
-                style={{ zIndex: 0 }}
-              >
-                <svg
-                  viewBox="0 0 400 400"
-                  fill="none"
-                  aria-hidden="true"
-                  className="web-bg-pulse absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80"
-                  style={{ color: "#cc0000" }}
-                >
-                  {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
-                    const r = (a * Math.PI) / 180;
-                    return (
-                      <line
-                        key={a}
-                        x1="200"
-                        y1="200"
-                        x2={200 + 200 * Math.cos(r)}
-                        y2={200 + 200 * Math.sin(r)}
-                        stroke="currentColor"
-                        strokeWidth="0.8"
-                        strokeOpacity="0.4"
-                      />
-                    );
-                  })}
-                  {[40, 80, 120, 160, 200].map((radius) => (
-                    <polygon
-                      key={radius}
-                      points={[0, 45, 90, 135, 180, 225, 270, 315]
-                        .map((a) => {
-                          const r = (a * Math.PI) / 180;
-                          return `${200 + radius * Math.cos(r)},${200 + radius * Math.sin(r)}`;
-                        })
-                        .join(" ")}
-                      stroke="currentColor"
-                      strokeWidth="0.5"
-                      strokeOpacity="0.3"
-                      fill="none"
-                    />
-                  ))}
-                </svg>
-              </div>
-            )}
             {activeConv.messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center relative z-10">
+              <div className="flex flex-col items-center justify-center h-full text-center">
                 <AvatarBadge name={activeConv.peerName} size={64} />
                 <p className="font-semibold text-white mt-3">
                   {activeConv.peerName}
@@ -1579,7 +1505,7 @@ export default function MessengerPage() {
                 </p>
               </div>
             ) : (
-              <div className="relative z-10">
+              <>
                 {activeConv.messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -1595,7 +1521,7 @@ export default function MessengerPage() {
                       </div>
                     )}
                     <div
-                      className="max-w-[72%] px-3.5 py-2.5 rounded-2xl spidey-bubble relative overflow-hidden"
+                      className="max-w-[72%] px-3.5 py-2.5 rounded-2xl"
                       style={{
                         background:
                           msg.from === "me"
@@ -1609,67 +1535,9 @@ export default function MessengerPage() {
                           msg.from === "me"
                             ? theme.sentText
                             : theme.receivedText,
-                        ...(theme.id === "spiderman" && msg.from === "me"
-                          ? {
-                              boxShadow:
-                                "0 2px 12px rgba(204,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1)",
-                              border: "1px solid rgba(204,0,0,0.3)",
-                            }
-                          : theme.id === "spiderman" && msg.from === "them"
-                            ? {
-                                boxShadow: "0 2px 8px rgba(204,0,0,0.15)",
-                                border: "1px solid rgba(204,0,0,0.2)",
-                              }
-                            : {}),
                       }}
                     >
-                      {theme.id === "spiderman" && (
-                        <svg
-                          viewBox="0 0 60 60"
-                          fill="none"
-                          aria-hidden="true"
-                          className="absolute pointer-events-none"
-                          style={{
-                            width: 40,
-                            height: 40,
-                            right: msg.from === "me" ? -8 : undefined,
-                            left: msg.from === "them" ? -8 : undefined,
-                            bottom: -8,
-                            opacity: 0.12,
-                            color: msg.from === "me" ? "#ff6b6b" : "#fca5a5",
-                          }}
-                        >
-                          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
-                            const r = (a * Math.PI) / 180;
-                            return (
-                              <line
-                                key={a}
-                                x1="30"
-                                y1="30"
-                                x2={30 + 30 * Math.cos(r)}
-                                y2={30 + 30 * Math.sin(r)}
-                                stroke="currentColor"
-                                strokeWidth="1"
-                              />
-                            );
-                          })}
-                          {[10, 20, 28].map((radius) => (
-                            <polygon
-                              key={radius}
-                              points={[0, 45, 90, 135, 180, 225, 270, 315]
-                                .map((a) => {
-                                  const r = (a * Math.PI) / 180;
-                                  return `${30 + radius * Math.cos(r)},${30 + radius * Math.sin(r)}`;
-                                })
-                                .join(" ")}
-                              stroke="currentColor"
-                              strokeWidth="0.6"
-                              fill="none"
-                            />
-                          ))}
-                        </svg>
-                      )}
-                      <p className="text-sm leading-relaxed break-words relative z-10">
+                      <p className="text-sm leading-relaxed break-words">
                         {msg.text}
                       </p>
                       <div
@@ -1706,7 +1574,7 @@ export default function MessengerPage() {
                 ))}
                 {activeConv.isTyping && <TypingIndicator theme={theme} />}
                 <div ref={messagesEndRef} />
-              </div>
+              </>
             )}
           </div>
           <div

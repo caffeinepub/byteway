@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Calendar, Search, User, X } from "lucide-react";
+import { motion } from "motion/react";
 import SEO from "../components/SEO";
 import { useSearch } from "../context/SearchContext";
 import { useGetAllBlogPostMetadata } from "../hooks/useBlog";
@@ -124,16 +125,24 @@ export default function BlogListPage() {
           {!isLoading && filteredPosts.length > 0 && (
             <div className="space-y-6">
               {filteredPosts.map((post, index) => (
-                <article
+                <motion.article
                   key={post.id}
-                  className="group p-6 rounded-xl border border-border bg-card hover:border-chart-1/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom"
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: index * 0.07 }}
+                  className="group p-6 rounded-xl border border-border bg-card transition-all duration-300 hover:scale-[1.02] cursor-default"
                   style={{
-                    animationDelay: `${index * 100}ms`,
-                    animationDuration: "500ms",
+                    transition:
+                      "box-shadow 0.3s, border-color 0.3s, transform 0.3s",
+                  }}
+                  whileHover={{
+                    boxShadow:
+                      "0 0 24px rgba(204,0,0,0.18), 0 8px 32px rgba(0,0,0,0.12)",
+                    borderColor: "rgba(204,0,0,0.45)",
                   }}
                   data-ocid={`blog.item.${index + 1}`}
                 >
-                  <div className="p-6 space-y-4">
+                  <div className="p-0 space-y-4">
                     <h2 className="text-2xl font-bold group-hover:text-chart-1 transition-colors">
                       {post.title}
                     </h2>
@@ -160,7 +169,7 @@ export default function BlogListPage() {
                       </span>
                     </Button>
                   </div>
-                </article>
+                </motion.article>
               ))}
             </div>
           )}

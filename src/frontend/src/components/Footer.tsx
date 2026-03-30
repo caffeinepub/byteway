@@ -222,7 +222,7 @@ export default function Footer() {
                         href={social.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-red-400 transition-all duration-300 hover:scale-110 social-icon-animated"
+                        className="relative text-muted-foreground hover:text-red-400 transition-all duration-300 hover:scale-110 social-icon-animated group/social"
                         aria-label={social.label}
                         style={
                           mounted
@@ -230,7 +230,22 @@ export default function Footer() {
                             : { opacity: 0 }
                         }
                       >
-                        <social.icon className="h-5 w-5" />
+                        <social.icon className="h-5 w-5 relative z-10" />
+                        {/* Web-radiate ring on hover */}
+                        <span
+                          className="absolute inset-0 rounded-full border border-red-400/0 group-hover/social:border-red-400/60 pointer-events-none"
+                          style={{
+                            transform: "scale(1)",
+                            transition: "border-color 0.2s",
+                          }}
+                        />
+                        <span
+                          className="absolute -inset-2 rounded-full border border-red-400/0 group-hover/social:border-red-400/30 pointer-events-none"
+                          style={{
+                            transform: "scale(1)",
+                            transition: "border-color 0.2s 0.05s",
+                          }}
+                        />
                       </a>
                     ),
                 )}
